@@ -1,4 +1,5 @@
 import 'dotenv/config'
+import process from 'process'
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({

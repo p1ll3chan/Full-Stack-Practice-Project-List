@@ -2,6 +2,31 @@
 
 Full-stack college content management system: React + TypeScript + Vite frontend, Express + TypeScript backend, Drizzle ORM on PostgreSQL.
 
+## Documentation
+
+Every folder has a `README.md` explaining what it does and which files it
+connects to. Start here:
+
+| Folder | Read for |
+| --- | --- |
+| [`backend/`](backend/README.md) | Server setup, libraries, full route list, request flow |
+| [`backend/src/`](backend/src/README.md) | Entry point + the route → controller → service pattern |
+| [`backend/src/db/`](backend/src/db/README.md) | Postgres connection, table schema, generated types |
+| [`backend/src/routes/`](backend/src/routes/README.md) | URL mapping, path params, route-order gotchas |
+| [`backend/src/controllers/`](backend/src/controllers/README.md) | Validation, status codes, the PUT spread trick |
+| [`backend/src/services/`](backend/src/services/README.md) | Drizzle CRUD template, SQL operators, where 404s come from |
+| [`backend/src/middleware/`](backend/src/middleware/README.md) | `HttpError`, error handler, async handler, param parsing |
+| [`backend/drizzle/`](backend/drizzle/README.md) | Generated SQL migrations and how to produce them |
+| [`frontend/`](frontend/README.md) | Vite setup, the `/api` proxy, libraries, data flow |
+| [`frontend/src/`](frontend/src/README.md) | Bootstrap chain, routing table, shared conventions |
+| [`frontend/src/api/`](frontend/src/api/README.md) | The `fetch` wrapper and the backend type contract |
+| [`frontend/src/hooks/`](frontend/src/hooks/README.md) | `useApi` — generics, effects, cleanup, refetch |
+| [`frontend/src/components/`](frontend/src/components/README.md) | Header, Footer, CourseCard, ContentBlock renderer |
+| [`frontend/src/pages/`](frontend/src/pages/README.md) | Public pages and the `/:slug` CMS catch-all |
+| [`frontend/src/admin/`](frontend/src/admin/README.md) | Dashboard + editors, state patterns, known gaps |
+| [`frontend/src/assets/`](frontend/src/assets/README.md) | Imported images vs `public/` |
+| [`frontend/public/`](frontend/public/README.md) | Static files served as-is |
+
 ## Structure
 
 ```
