@@ -1,100 +1,121 @@
 # `pages/` — Public-facing routes
 
-One component per route, registered in `../App.tsx`:
+One component per route; the full table lives in `../routes.tsx`:
 
-| File | Route | Data source |
+| File | Route | Data source (typed hooks) |
 | --- | --- | --- |
-| `Home.tsx` | `/` | `GET /api/pages/home` |
-| `Academics.tsx` | `/academics` | `GET /api/academics/courses` |
-| `Faculty.tsx` | `/faculty` | `GET /api/faculty` |
-| `DynamicPage.tsx` | `/:slug` (catch-all) | `GET /api/pages/:slug` |
+| `Home.tsx` | `/` | `CmsSection slug="home"` + `useStreamList({ limit: 6 })` preview |
+| `About.tsx` | `/about` | `CmsSection slug="about"` |
+| `Contact.tsx` | `/contact` | `CmsSection slug="contact"` + `useContact()` details card |
+| `Departments.tsx` | `/departments` | `useStreamList` (search/category/pagination) + `useAllStreams` (categories) |
+| `DepartmentDetail.tsx` | `/departments/:slug`, `/streams/:slug` | `useStreamBySlug` + `useCourseList({ stream })` |
+| `Academics.tsx` | `/academics` | `CmsSection slug="academics"` + `useDegreeLevelList` + `useStreamList` + `useCourseList` |
+| `AcademicDetail.tsx` | `/academics/streams/:slug` | `useAcademicDetails(slug)` + shared `StreamNav`/`CourseNav` |
+| `CourseDetail.tsx` | `/academics/courses/:id` | `useCourseById` + `useAllStreams` (department link) |
+| `Faculty.tsx` | `/faculty` | `CmsSection slug="faculty"` + `useFacultyList` |
+| `FacultyStream.tsx` | `/faculty/streams/:slug` | `useStreamBySlug` + `useFacultyList({ stream })` + `CourseNav` |
+| `FacultyDetail.tsx` | `/faculty/:id` | `useFacultyById` |
+| `Excellence.tsx` | `/excellence` | `CmsSection slug="excellence"` + `useExcellenceDomains` + `useExcellenceList` |
+| `ExcellenceDomain.tsx` | `/excellence/domains/:slug` | `useExcellenceDomain` + `useExcellenceList({ domain })` |
+| `DynamicPage.tsx` | `/:slug` (catch-all) | `usePageBySlug(slug)` — CMS content |
+| `NotFound.tsx` | `*` | static `NotFoundPage` |
+| `CmsSection.tsx` | *(not a route)* | shared renderer: page header + blocks + children |
 
-All four use the `useApi` hook (`../hooks/useApi.ts`) — read-only pages, no
+All reads go through typed hooks (`../api/hooks.ts`) — read-only pages, no
 forms. Writes happen in `../admin/`.
 
 ## The universal pattern
 
-Every page follows this exact skeleton:
+Every page follows this skeleton (via `components/states.tsx`):
 
 ```tsx
 export default function X() {
-  const { data, loading, error } = useApi<T>('/some/path')
+  const { data, loading, error, refetch } = useXxx(param)
 
-  if (loading) return <p>Loading...</p>
-  if (error)   return <p className="error">...</p>
-  if (!data)   return null
+  if (loading) return <Loading />
+  if (error)   return <ErrorState error={error} onRetry={refetch} />
+  if (!data)   return <EmptyState message="Nothing here yet." />
 
   return <section> ...render data... </section>
 }
 ```
 
 **Early returns before JSX** — handle the three async states (loading, error,
-empty) first, then the happy path. This keeps the render body clean and
-prevents "cannot read property of null" crashes.
+empty) first, then the happy path. `ErrorState` shows a Retry button (calls
+`refetch`) and renders the not-found page automatically on 404
+(`ApiError.isNotFound`).
 
 ## Individual pages
+
+### `CmsSection.tsx` — the shared CMS renderer
+
+```tsx
+export default function CmsSection({ slug, children }: CmsSectionProps) {
+  const { data: page, loading, error, refetch } = usePageBySlug(slug)
+  ...
+  <PageHeader title={page.title} />
+  <PageBlocks blocks={page.blocks} />
+  {children}
+}
+```
+
+Fetches a CMS page by slug and renders its blocks through the block registry.
+`About` is literally `return <CmsSection slug="about" />`. `Home`,
+`Academics`, `Faculty`, `Excellence`, `Contact` compose it with page-specific
+sections as `children` — so intro content stays editable in the CMS while the
+data sections stay coded.
 
 ### `Home.tsx`
 
 ```tsx
-const { data: page, loading, error } = useApi<Page>('/pages/home')
-...
-{page.blocks.map((block) => (
-  <ContentBlock key={block.id} block={block} />
-))}
-<div className="quick-links">
-  <Link to="/academics">Browse Academics</Link>
-  <Link to="/faculty">Meet the Faculty</Link>
-</div>
+<CmsSection slug="home">
+  <div className="quick-links"> ...Links to academics/faculty/departments... </div>
+  <DepartmentPreview />   // useStreamList({ limit: 6, sort: 'sortOrder' })
+</CmsSection>
 ```
 
-- `data: page` — **renaming on destructure**: the hook returns `data`, this
-  page calls it `page` because that's what it is.
-- Fetches a specific CMS page by the slug `home`, so the homepage content is
-  editable from the admin panel without code changes.
-- `<Link>` (react-router) = client-side navigation, no full page reload.
+- `DepartmentPreview` is a private component with its own hook call — hooks
+  are per-component, so each section owns its own async state.
 
-### `Academics.tsx`
+### `Departments.tsx` — search, filter, paginate ⭐ most interactive
 
-Fetches `Course[]`, renders a `.course-grid` of `<CourseCard>` components.
-Note `courses?.map(...)` — the `?.` handles the moment before data arrives
-(even though the loading return usually covers it).
+- `useStreamList({ q, category, page, limit: 9, sort: 'sortOrder' })` — the
+  list is **server-driven**: every keystroke (debounced 300 ms), category
+  change, and page change re-issues the request.
+- Category options are derived from `useAllStreams()` (distinct `category`
+  values) — no hardcoded filter list.
+- `meta` from `useApiList` feeds `<Pagination>` (`Page x of y · n results`).
 
-### `Faculty.tsx`
-
-Fetches `FacultyMember[]`, renders cards inline (no separate component —
-a fine choice since it's used only here). Includes a `mailto:` link:
-
-```tsx
-<a href={`mailto:${member.email}`}>{member.email}</a>
-```
-
-Template literal inside JSX braces builds the URL at render time.
-
-### `DynamicPage.tsx` — the CMS catch-all ⭐
+### `DynamicPage.tsx` — the CMS catch-all
 
 ```tsx
 const { slug } = useParams<{ slug: string }>()
-const { data: page, loading, error } = useApi<Page>(`/pages/${slug ?? ''}`)
+const { data: page, loading, error, refetch } = usePageBySlug(slug ?? '')
 ```
 
-- **`useParams`** reads the `:slug` segment from the URL — the same value the
-  backend's `pageController.getBySlug` receives.
-- `<T>` in `useParams<{ slug: string }>()` types the param as a string.
-- `` `/pages/${slug ?? ''}` `` — builds the API path dynamically. `?? ''`
-  guards against `slug` being undefined (avoids `.../pages/undefined`).
-- Registered **last** in `App.tsx`'s `<Routes>`, so any URL not matched by a
-  real route falls through here — that's how `/about` or `/admissions` serve
-  CMS content created in the admin area.
+- **`useParams`** reads the `:slug` segment — same value the backend's
+  `pageController.getBySlug` receives.
+- Registered **second to last** in `routes.tsx`, so any URL not matched by a
+  real route falls through here — `/about`-style CMS pages created in the
+  admin area work without code changes. Unknown slugs (404) render the
+  not-found page via `ErrorState`.
+- The final `*` route (`NotFound`) catches paths that don't fit `/:slug`
+  (e.g. `/a/b` with two segments).
+
+### `CourseDetail.tsx` / `FacultyDetail.tsx` — numeric ids
+
+`useParams` gives `string | undefined`; both validate the id
+(`/^\d+$/` test) and pass `undefined` to the hook when invalid — the hook
+skips fetching, and the page renders not-found. This avoids requests like
+`/courses/undefined`.
 
 ## Connections
 
 ```
-App.tsx ──routes──→ THIS FOLDER
-THIS FOLDER ──imports──→ ../hooks/useApi
-THIS FOLDER ──imports──→ ../api/types        (Page, Course, FacultyMember)
-Home, DynamicPage ──imports──→ ../components/ContentBlock
-Academics ──imports──→ ../components/CourseCard
-Home ──imports──→ react-router's Link
+routes.tsx ──routes──→ THIS FOLDER
+THIS FOLDER ──imports──→ ../api/hooks        (typed data hooks)
+THIS FOLDER ──imports──→ ../api/types        (Page, Course, Stream, ...)
+THIS FOLDER ──imports──→ ../components/*     (PageBlocks, cards, states, nav)
+Home, About, Academics, Faculty, Excellence, Contact ──compose──→ CmsSection
 DynamicPage ──imports──→ react-router's useParams
 ```

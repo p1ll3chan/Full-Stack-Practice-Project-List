@@ -1,95 +1,110 @@
 # `middleware/` — Functions that run before your handler
 
 In Express, **middleware** = `function(req, res, next)`. They run in sequence
-as a pipeline. This folder holds two helpers used everywhere else.
+as a pipeline. Registration order in `app.ts`:
+
+```
+securityHeaders → cors → express.json → routes → notFound → errorHandler
+```
+
+`authenticate` / `requireRole` run only on the admin mount, before any admin
+route handler.
 
 ## `error.ts`
 
-### `HttpError` (lines 3-10)
+### `HttpError`
 
 ```ts
 export class HttpError extends Error {
-  constructor(public status: number, message: string) {
-    super(message)
-  }
+  constructor(status: number, message: string, code?: ErrorCode, details?: ErrorDetail[])
 }
 ```
 
-A normal `Error` that also carries an HTTP status code, so a service can say
-*"this is a 404"* without knowing anything about Express.
+A normal `Error` that also carries an HTTP status, a machine-readable
+`ErrorCode`, and optional `details` (used by validation failures). If `code`
+is omitted it's derived from the status (`404 → not_found`, `409 → conflict`,
+`5xx → internal_error`, ...).
 
-- `extends Error` — inherits `message`, `stack`, etc.
-- `public status` — TypeScript **parameter property**: automatically becomes
-  `this.status = status`.
+**Thrown by:** services and controllers. **Caught by:** `errorHandler`.
 
-**Thrown by:** every service (`pageService`, `courseService`, `facultyService`)
-and `middleware/params.ts`.
-**Caught by:** `errorHandler`.
+### `ErrorCode`
 
-### `notFound` (lines 12-14)
+Closed union: `bad_request | unauthorized | forbidden | not_found | conflict |
+validation_error | invalid_json | payload_too_large | invalid_reference |
+internal_error`. This is the stable contract clients switch on — see
+`docs/openapi.json`.
+
+### `notFound`
+
+Mounted before `errorHandler` so any URL that matched no route gets
+`404 {error:{code:'not_found',...}}` instead of Express's default HTML page.
+
+### `errorHandler` (4 parameters = Express error handler)
+
+Rendering order:
+
+1. `HttpError` → its status/code/message/details
+2. `ZodError` (thrown outside `parse()`) → 400 `validation_error` + issue list
+3. **body-parser failures** — `entity.parse.failed` → 400 `invalid_json`,
+   `entity.too.large` → 413 `payload_too_large`
+4. **Postgres failures** — walks the `cause` chain looking for an SQLSTATE
+   (`/^[0-9A-Z]{5}$/` + `severity`) and maps it:
+   - known constraint names in `CONSTRAINT_FAILURES`
+     (`pages_slug_unique` → 409, `page_blocks_image_requires_media` → 400, ...)
+   - `23505` unique → 409, `23503` FK → 400 `invalid_reference`,
+     `23514`/`23502`/`22xxx` → 400 `validation_error`
+5. anything else → `console.error(err)` then generic
+   `500 {error:{code:'internal_error'}}`
+
+The generic 500 is deliberate: **never leak stack traces, SQL, or constraint
+names to the client.** (The server log keeps the real error.)
+
+### `asyncHandler`
+
+Wraps an async handler so rejections reach `errorHandler`
+(`fn(req,res,next).catch(next)`). Express 5 propagates async rejections on
+its own, so this is currently unused — available if you need it.
+
+## `auth.ts`
+
+### `authenticate`
+
+Reads `Authorization: Bearer <token>`, compares SHA-256 digests with
+`timingSafeEqual` against `ADMIN_TOKEN` / `EDITOR_TOKEN` env vars, and sets
+`req.auth = { role: 'admin' | 'editor' }`.
+
+- Tokens are matched to roles **server-side** — the request can never claim
+  its own role.
+- **Fails closed:** if a token env var is unset, requests carrying that token
+  get 401 (and no token at all always gets 401).
+
+### `requireRole(minimum)`
+
+Express factory:
 
 ```ts
-export function notFound(_req: Request, res: Response) {
-  res.status(404).json({ error: 'Not found' })
-}
+app.use('/api/admin', authenticate, requireRole('editor'), adminRouter)
 ```
 
-3 parameters = normal middleware. Mounted in `server.ts` **before**
-`errorHandler` so any URL that matched no route gets a JSON 404 instead of
-Express's default HTML page.
+- no `req.auth` → `401` + `WWW-Authenticate: Bearer`
+- role rank below `minimum` (`editor < admin`) → `403`
 
-### `errorHandler` (lines 16-23)
+Individual `DELETE` handlers attach `requireRole('admin')` so editors can
+create/update/publish/reorder but not destroy.
 
-```ts
-export function errorHandler(err, _req, res, _next) { ... }
-```
+## `security.ts`
 
-**4 parameters** is how Express recognizes an *error handler*. Logic:
+`securityHeaders` sets (on every response):
 
-1. `err instanceof HttpError` → respond with `err.status` + `err.message`
-2. anything else → `console.error(err)` then generic `500`
+- `X-Content-Type-Options: nosniff`
+- `X-Frame-Options: DENY`
+- `Content-Security-Policy: default-src 'none'; frame-ancestors 'none'; ...`
+- removes `X-Powered-By` (also disabled in `app.ts`)
 
-The generic 500 is deliberate: never leak stack traces or SQL to the client.
-
-### `asyncHandler` (lines 25-31)
-
-```ts
-return (req, res, next) => { fn(req, res, next).catch(next) }
-```
-
-Solves a classic Node bug: if an `async` route handler rejects, Express 4
-**cannot see it** — the request hangs forever. This wrapper catches the
-rejection and forwards it to `errorHandler`.
-
-> ⚠️ Currently **unused** in this project — controllers call `await` directly.
-> Wrapping them with `asyncHandler` is a known TODO.
-
-## `params.ts`
-
-URL parameters are always strings — `/api/courses/abc` gives you `"abc"`.
-
-### `param(req, name)` (lines 4-7)
-
-Reads `req.params[name]` and unwraps it if Express gave an array (Express 5
-can produce arrays for repeated params).
-
-### `numParam(req, name)` (lines 9-15)
-
-```ts
-const n = Number(param(req, name))
-if (Number.isNaN(n)) throw new HttpError(400, `Invalid ${name}`)
-return n
-```
-
-Converts to a number, throws **400 Bad Request** if it isn't one. This is
-input validation at the edge — never trust what comes from the URL.
-
-**Used by:** `courseController`, `facultyController`, `pageController` — every
-`GET/PUT/DELETE /:id` route.
+CORS is configured in `app.ts` (allowlist from `CORS_ORIGINS`, default
+localhost:5173 — unknown origins get no allow-origin header).
 
 ## Order matters
-
-Registered in `server.ts`:
 
 ```ts
 app.use(notFound)       // 1st: catch unmatched URLs
@@ -98,3 +113,9 @@ app.use(errorHandler)   // 2nd: catch everything else — MUST be last
 
 Middleware run in registration order. An error handler placed before routes
 would never see route errors.
+
+## Note on `params.ts`
+
+The old `middleware/params.ts` (`param()` / `numParam()`) is **gone** — path
+parameters are validated by zod (`pathId` in `src/http/query.ts`, called from
+controllers), which reports failures as 400 `validation_error` with details.

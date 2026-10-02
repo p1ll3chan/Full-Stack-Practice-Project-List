@@ -1,38 +1,30 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter } from 'react-router-dom'
+import { QueryClientProvider } from '@tanstack/react-query'
 import Header from './components/Header'
 import Footer from './components/Footer'
-import Home from './pages/Home'
-import Academics from './pages/Academics'
-import Faculty from './pages/Faculty'
-import DynamicPage from './pages/DynamicPage'
-import Dashboard from './admin/Dashboard'
-import PageEditor from './admin/PageEditor'
-import CourseEditor from './admin/CourseEditor'
+import { AuthProvider } from './admin/auth'
+import ContentSync from './admin/ContentSync'
+import { createQueryClient } from './api/queryClient'
+import { AppRoutes } from './routes'
 
-function AdminNewPage() {
-  return <PageEditor />
-}
-
-function AdminNewCourse() {
-  return <CourseEditor />
-}
+const queryClient = createQueryClient()
 
 export default function App() {
   return (
     <BrowserRouter>
-      <Header />
-      <main className="container">
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/academics" element={<Academics />} />
-          <Route path="/faculty" element={<Faculty />} />
-          <Route path="/admin" element={<Dashboard />} />
-          <Route path="/admin/pages/new" element={<AdminNewPage />} />
-          <Route path="/admin/courses/new" element={<AdminNewCourse />} />
-          <Route path="/:slug" element={<DynamicPage />} />
-        </Routes>
-      </main>
-      <Footer />
+      <QueryClientProvider client={queryClient}>
+        <ContentSync />
+        <AuthProvider>
+          <a className="skip-link" href="#main">
+            Skip to content
+          </a>
+          <Header />
+          <main id="main" className="container">
+            <AppRoutes />
+          </main>
+          <Footer />
+        </AuthProvider>
+      </QueryClientProvider>
     </BrowserRouter>
   )
 }

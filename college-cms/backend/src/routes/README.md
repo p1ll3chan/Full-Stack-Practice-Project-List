@@ -3,20 +3,22 @@
 **Deliberately thin.** A route file contains no logic, no validation, no
 queries — only "this URL + this HTTP method calls this function."
 
-Each file creates an Express `Router()`, registers handlers, and exports it.
-`server.ts` mounts them at a prefix:
+Two kinds of routers:
+
+- **`routes/*.ts` — public, read-only.** Only `GET`. Mounted straight on `app`.
+- **`routes/admin/*` — authenticated, mutating.** Mounted once:
 
 ```ts
-app.use('/api/pages', pagesRouter)       // routes/pages.ts
-app.use('/api/academics', academicsRouter)
-app.use('/api/faculty', facultyRouter)
-app.use('/api/excellence', excellenceRouter)
-app.use('/api/admin', adminRouter)
+app.use('/api/admin', authenticate, requireRole('editor'), adminRouter)
 ```
 
+Every admin URL therefore passes `authenticate` (bearer token → `req.auth`)
+and `requireRole('editor')` before any handler runs. Individual `DELETE`
+handlers add `requireRole('admin')` inline.
+
 Final URL = **mount prefix + route path**. Example:
-`routes/academics.ts` has `router.get('/courses', ...)` mounted at
-`/api/academics` → `GET /api/academics/courses`.
+`routes/admin/courses.ts` has `router.post('/', ...)` mounted at
+`/api/admin` (via the admin index) → `POST /api/admin/courses`.
 
 ## HTTP verbs → CRUD
 
@@ -24,75 +26,68 @@ Final URL = **mount prefix + route path**. Example:
 | --- | --- | --- |
 | `GET` | Read | 200 |
 | `POST` | Create | 201 |
-| `PUT` | Update | 200 |
+| `PUT` | Update / reorder | 200 |
 | `DELETE` | Delete | 204 |
 
 ## Files
 
-### `pages.ts` → `pageController`
+### Public (`GET` only)
 
-```ts
-router.get('/',        pageController.list)
-router.get('/:slug',   pageController.getBySlug)
-router.get('/id/:id',  pageController.getById)
-router.post('/',       pageController.create)
-router.put('/:id',     pageController.update)
-router.delete('/:id',  pageController.remove)
-```
+| File | Paths |
+| --- | --- |
+| `pages.ts` | `/api/pages`, `/api/pages/:slug` |
+| `streams.ts` | `/api/streams`, `/api/streams/:slug` |
+| `academics.ts` | `/api/academics/courses`, `/api/academics/courses/:id`, `/api/academics/details/:streamSlug` |
+| `faculty.ts` | `/api/faculty`, `/api/faculty/:id` |
+| `excellence.ts` | `/api/excellence`, `/api/excellence/:id` |
+| `excellenceDomains.ts` | `/api/excellence-domains`, `/api/excellence-domains/:slug` |
+| `degreeLevels.ts` | `/api/degree-levels`, `/api/degree-levels/:code` |
+| `contact.ts` | `/api/contact` |
 
-`:slug` and `:id` are **path parameters** → captured into `req.params`,
-read later via `param()` / `numParam()`.
+Public routers expose no mutations. Old write URLs (`POST /api/pages`, etc.)
+now fall through to `notFound` (404) — frontend writes must move to
+`/api/admin/*` with a bearer token (Phase 3).
 
-> ⚠️ **Route order gotcha:** `/:slug` is registered before `/id/:id`.
-> Express matches in order, so `/api/pages/id/5` could be caught by `/:slug`
-> with `slug = "id"`. Specific paths should always come *before* parameterized
-> ones.
+### `routes/admin/index.ts`
 
-### `academics.ts` → `courseController`
+Assembles the admin router from the files below and exports it. Order and
+path specificity matter (see gotchas).
 
-```
-GET    /courses        → list
-GET    /courses/:id    → getById
-POST   /courses        → create
-PUT    /courses/:id    → update
-DELETE /courses/:id    → remove
-```
+| File | Paths (all under `/api/admin`) |
+| --- | --- |
+| `pages.ts` | pages CRUD, `/:id/publish`, `/:id/unpublish`, `/:id/blocks` CRUD, `/:id/blocks/order`, `PUT /order` |
+| `streams.ts` | streams CRUD, `/:id/active`, `GET/PUT /:id/details` (academic), `GET/PUT /:id/faculty-details`, `PUT /order` |
+| `courses.ts` | courses CRUD |
+| `degreeLevels.ts` | degree levels CRUD, `PUT /order` |
+| `faculty.ts` | faculty CRUD, `/:id/details` upsert |
+| `excellence.ts` | items CRUD, `PUT /order` |
+| `excellenceDomains.ts` | domains CRUD |
+| `contact.ts` | `GET /` (404 if unset), `PUT /` (upsert) |
+| `stats` (in index) | `GET /stats` → counts for the admin dashboard |
 
-### `faculty.ts` → `facultyController`
+`GET /api/admin/stats` now has a proper controller
+(`adminController` → `statsService`) instead of the old inline query.
 
-Same 5-route CRUD pattern as academics, at the router root (`/`).
+## Gotchas
 
-### `excellence.ts` → `facultyController`
+> ⚠️ **Route order.** Express matches in registration order:
+>
+> - `PUT /order` must be registered **before** `PUT /:id`, or `order` is
+>   parsed as an id and fails validation.
+> - `/:id/blocks/order` must come **before** `/:id/blocks/:blockId`, or a
+>   reorder PUT is mistaken for a block update.
+>
+> Same rule as always: specific paths go before parameterized ones.
 
-Only 2 routes — read + create, no update/delete:
-
-```ts
-router.get('/',  facultyController.listExcellence)
-router.post('/', facultyController.createExcellence)
-```
-
-Note it reuses `facultyController.ts` rather than having its own file.
-
-### `admin.ts` — the odd one out
-
-No controller, no service. It queries Drizzle **inline**:
-
-```ts
-const [pageCount] = await db.select({ count: sql<number>`count(*)::int` }).from(pages)
-```
-
-- `sql<number>`...`` — a **tagged template literal** for raw SQL, still safely
-  parameterized by Drizzle.
-- `::int` — casts Postgres `bigint` down to a JS number.
-
-This breaks the route → controller → service pattern used everywhere else.
-Inconsistent structure is a common smell — worth refactoring into a service.
+Path ids are validated by zod (`pathId` in `src/http/query.ts`) inside the
+controller — `/api/admin/pages/abc` → 400 `validation_error`, never a crash
+or a raw SQL error.
 
 ## Connections
 
 ```
-server.ts ──mounts──→ this folder
-this folder ──imports──→ ../controllers/*
+app.ts ──mounts──→ this folder (public + routes/admin/index.ts)
+routes/*.ts ──imports──→ ../controllers/*
+routes/admin/* ──imports──→ ../../controllers/*  (auth applied by app.ts mount)
 controllers ──imports──→ ../services/*
-admin.ts ──imports──→ ../db/index.ts and ../db/schema.ts directly
 ```

@@ -7,6 +7,7 @@ from the site root. No import, no processing, no hashing.
 | --- | --- |
 | `favicon.svg` | Browser tab icon (auto-linked by Vite) |
 | `icons.svg` | SVG sprite sheet — `<use>` references |
+| `_redirects` | Netlify / Cloudflare Pages SPA fallback (`/* /index.html 200`); ignored elsewhere. Vercel uses `../vercel.json`, nginx uses `try_files` (see `../../DEPLOYMENT.md`) |
 
 ## `public/` vs `src/assets/`
 

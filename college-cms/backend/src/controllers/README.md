@@ -2,120 +2,105 @@
 
 Controllers sit between routes and services. Their job:
 
-1. **Read** the request (params, body)
-2. **Validate** it — reject bad input with 400 *before* touching the DB
-3. **Call** a service function
-4. **Shape** the response and pick the correct status code
+1. **Validate** the request — zod schemas on body, query, and path params;
+   failures become 400 `validation_error` *before* touching the DB
+2. **Call** a service function
+3. **Shape** the response and pick the correct status code
 
 They contain **no SQL** — that's the service layer's job.
 
-All three controllers are `async` functions matching Express's
-`(req, res)` signature, exported as named exports and imported wholesale:
+All controllers are `async` functions matching Express's `(req, res)`
+signature, exported as named exports and imported wholesale:
 
 ```ts
 import * as courseController from '../controllers/courseController.js'
 router.get('/courses', courseController.list)
 ```
 
-## The 5-function CRUD template
+## The pattern
 
-Every controller has the same shape. Using `courseController.ts`:
+Using `courseController.ts`:
 
-### 1. List — lines 5-7
+### 1. Schemas at the top
 
 ```ts
-export async function list(_req: Request, res: Response) {
-  res.json(await courseService.listCourses())
+const createSchema = z.strictObject({ title: trimmed(255), slug: slugSchema.optional(), ... })
+const updateSchema = z.strictObject({ ...all fields optional }).refine(
+  (value) => Object.keys(value).length > 0,
+  { message: atLeastOneField },
+)
+const publicListQuery = listQuery({ sorts: ['code', 'title'] as const, defaultSort: 'code' })
+```
+
+- `z.strictObject` — unknown keys are a **400**, never silently ignored.
+- update schemas require **at least one field** (no empty PUTs).
+- `listQuery(...)` (`http/query.ts`) supplies `page`, `limit`, `sort`, `order`
+  with zod types — `?limit=101` or `?order=sideways` fail validation instead of
+  reaching SQL. Resource filters are added with `.extend({...})`, coercing
+  query strings (`z.coerce.number()`) where needed.
+- shared pieces live in `http/schemas.ts` (`slugSchema`, `trimmed`,
+  `richDocSchema`, `atLeastOneField`).
+
+### 2. Parse, then delegate
+
+```ts
+export async function adminUpdate(req: Request, res: Response) {
+  const { id } = parse(pathId, req.params)      // /api/admin/courses/abc → 400
+  const body = parse(updateSchema, req.body)    // bad body → 400 + details
+  ok(res, await courseService.updateCourse(id, body))
 }
 ```
 
-`_req` prefixed with underscore = "unused parameter" (lint convention).
-`res.json()` sets `Content-Type: application/json` and serializes.
+`parse(schema, value)` (`http/validate.ts`) throws
+`HttpError(400, 'Request validation failed', 'validation_error', details)`
+with one entry per zod issue (`{path, message}`).
 
-### 2. Get one — lines 9-11
+### 3. Respond with an envelope helper
 
-```ts
-res.json(await courseService.getCourse(numParam(req, 'id')))
-```
+| Helper | Status | Body |
+| --- | --- | --- |
+| `ok(res, data)` | 200 | `{data}` |
+| `created(res, data)` | 201 | `{data}` |
+| `noContent(res)` | 204 | empty |
+| `list(res, rows, metaFor(total, page, limit))` | 200 | `{data, meta}` |
 
-`numParam` converts `"7"` → `7`, throwing a 400 if it's not a number.
-If the service finds nothing it throws `HttpError(404)` — handled upstream.
+Never hand-roll `res.json({...})` — the envelopes are the API contract.
 
-### 3. Create — lines 13-27
-
-```ts
-const { code, title, description, credits, department } = req.body   // read
-if (!code || !title) {                                               // validate
-  res.status(400).json({ error: 'code and title are required' })
-  return
-}
-const course = await courseService.createCourse({ ... })             // act
-res.status(201).json(course)                                         // 201 = Created
-```
-
-`req.body` exists only because `server.ts` adds `express.json()`.
-
-### 4. Update — lines 29-39 (the spread trick)
-
-```ts
-const course = await courseService.updateCourse(numParam(req, 'id'), {
-  ...(code !== undefined && { code }),
-  ...(title !== undefined && { title }),
-  ...(description !== undefined && { description }),
-  ...(credits !== undefined && { credits }),
-  ...(department !== undefined && { department }),
-})
-```
-
-How it evaluates:
-
-- field **missing** → `undefined !== undefined` → `false` → `...(false)` → adds nothing
-- field **present** → `true && { code }` → `{ code }` → `...{ code }` adds it
-
-**Result:** only fields the client actually sent get updated. Omitted fields
-keep their current DB values. This is partial update semantics on a PUT.
-
-### 5. Delete — lines 41-44
-
-```ts
-await courseService.deleteCourse(numParam(req, 'id'))
-res.status(204).end()
-```
-
-`204 No Content` + `.end()` — success with an empty body (nothing to return).
-
-## Status codes used across all controllers
+## Status codes used
 
 | Code | Meaning | Where |
 | --- | --- | --- |
-| 200 | OK | list, get, update |
+| 200 | OK | list, get, update, publish, reorder |
 | 201 | Created | create |
 | 204 | No Content | delete |
-| 400 | Bad Request | failed validation / bad param |
-| 404 | Not Found | thrown by service, caught by `errorHandler` |
-| 500 | Server Error | unknown failure, handled in `errorHandler` |
+| 400 | `validation_error` / `bad_request` / `invalid_json` / `invalid_reference` | zod failures, bad path ids, malformed body, bad FK |
+| 401 | `unauthorized` | missing/invalid bearer token (`auth.ts`) |
+| 403 | `forbidden` | role too low (`auth.ts`) |
+| 404 | `not_found` | thrown by service, caught by `errorHandler` |
+| 409 | `conflict` | unique slug/code or record in use (via service pre-checks or PG mapping) |
+| 413 | `payload_too_large` | body over 1mb |
+| 500 | `internal_error` | unknown failure, logged server-side |
 
 ## Files
 
-| File | Service it calls | Fields validated |
+| File | Public handlers | Admin handlers (under `/api/admin`) |
 | --- | --- | --- |
-| `pageController.ts` | `pageService` | `title`, `slug` required |
-| `courseController.ts` | `courseService` | `code`, `title` required |
-| `facultyController.ts` | `facultyService` | `name` required; also `listExcellence` / `createExcellence` (`title`, `year` required) |
-
-## Known gaps (learning tasks)
-
-- **No `asyncHandler` wrapper** — if a service rejects unexpectedly (DB down),
-  nothing catches it and the request hangs. `middleware/error.ts` exports
-  `asyncHandler` but it's unused.
-- **Validation checks presence only** — `credits: "many"` passes the `if`
-  checks. A schema validator (e.g. Zod) would catch type errors.
+| `pageController.ts` | list, getBySlug, getById | CRUD, publish/unpublish, blocks CRUD + reorder |
+| `streamController.ts` | list, getBySlug | CRUD, `/:id/active`, reorder |
+| `courseController.ts` | list, getById | CRUD, `/:id/active`, reorder |
+| `degreeLevelController.ts` | list, getBySlug | CRUD, reorder |
+| `facultyController.ts` | list, getById | CRUD + `/:id/details` upsert |
+| `excellenceController.ts` | list, getById | CRUD + reorder |
+| `excellenceDomainController.ts` | list, getBySlug (+ active items) | CRUD |
+| `contactController.ts` | get | upsert |
+| `academicController.ts` | stream courses / degree levels / details | details upsert |
+| `adminController.ts` | — | `GET /stats` |
 
 ## Connections
 
 ```
 routes/*.ts ──calls──→ THIS FOLDER
 THIS FOLDER ──calls──→ ../services/*
-THIS FOLDER ──uses──→ ../middleware/params.ts  (numParam, param)
-THIS FOLDER ──throws──→ HttpError (from ../middleware/error.ts)  ← indirectly via services
+THIS FOLDER ──uses──→ ../http/*       (parse, listQuery, respond helpers)
+THIS FOLDER ──throws──→ HttpError     (via ../middleware/error.ts)
 ```

@@ -1,56 +1,68 @@
+import { useQuery } from '@tanstack/react-query'
 import { Link } from 'react-router-dom'
-import { useApi } from '../hooks/useApi'
-import type { Page } from '../api/types'
+import { api } from '../api/client'
+import { adminKeys } from '../api/queryKeys'
+import type { AdminStats } from '../api/types'
+import { ErrorState, Loading } from '../components/states'
 
-interface Stats {
-  pages: number
-  courses: number
-  faculty: number
+function StatCard({ label, value, detail }: { label: string; value: number | undefined; detail?: string }) {
+  return (
+    <div className="stat-card">
+      <span className="stat-value">{value ?? '—'}</span>
+      <span className="stat-label">{label}</span>
+      {detail && <span className="stat-detail">{detail}</span>}
+    </div>
+  )
 }
 
 export default function Dashboard() {
-  const { data: stats, loading, error } = useApi<Stats>('/admin/stats')
-  const { data: pages } = useApi<Page[]>('/pages')
+  const { data: stats, isLoading, error, refetch } = useQuery({
+    queryKey: adminKeys.stats(),
+    queryFn: () => api.get<AdminStats>('/admin/stats'),
+  })
 
-  if (loading) return <p>Loading dashboard...</p>
-  if (error) return <p className="error">Failed to load stats: {error}</p>
+  if (isLoading) return <Loading label="Loading dashboard…" />
+  if (error) return <ErrorState error={error} onRetry={refetch} />
 
   return (
-    <section>
-      <h1>Admin Dashboard</h1>
+    <section className="admin-page">
+      <h1>Dashboard</h1>
+      <p className="admin-subtitle">Content status across the site.</p>
       <div className="stat-grid">
-        <div className="stat-card">
-          <span className="stat-value">{stats?.pages ?? '—'}</span>
-          <span className="stat-label">Pages</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{stats?.courses ?? '—'}</span>
-          <span className="stat-label">Courses</span>
-        </div>
-        <div className="stat-card">
-          <span className="stat-value">{stats?.faculty ?? '—'}</span>
-          <span className="stat-label">Faculty</span>
-        </div>
+        <StatCard
+          label="Pages"
+          value={stats?.pages}
+          detail={`${stats?.pagesPublished ?? 0} published · ${stats?.pagesDraft ?? 0} drafts`}
+        />
+        <StatCard
+          label="Departments"
+          value={stats?.streams}
+          detail={`${stats?.streamsActive ?? 0} active`}
+        />
+        <StatCard label="Courses" value={stats?.courses} detail={`${stats?.coursesActive ?? 0} active`} />
+        <StatCard label="Faculty" value={stats?.faculty} />
+        <StatCard label="Excellence items" value={stats?.excellence} />
+        <StatCard label="Media" value={stats?.media} />
       </div>
-      <div className="admin-actions">
-        <Link to="/admin/pages/new" className="btn">
-          New Page
+      <div className="quick-actions">
+        <Link to="/admin/pages/new" className="btn-primary">
+          New page
         </Link>
-        <Link to="/admin/courses/new" className="btn">
-          New Course
+        <Link to="/admin/departments" className="btn">
+          Manage departments
+        </Link>
+        <Link to="/admin/faculty/new" className="btn">
+          Add faculty member
+        </Link>
+        <Link to="/admin/media" className="btn">
+          Media library
         </Link>
       </div>
-      <h2>Pages</h2>
-      <ul className="admin-list">
-        {pages?.map((p) => (
-          <li key={p.id}>
-            <Link to={`/admin/pages/${p.id}`}>{p.title}</Link>
-            <span className={`badge ${p.published ? 'badge-live' : 'badge-draft'}`}>
-              {p.published ? 'Published' : 'Draft'}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {(stats?.pagesDraft ?? 0) > 0 && (
+        <p className="admin-note">
+          <Link to="/admin/pages">Review draft pages</Link> before they go live.
+        </p>
+      )}
     </section>
   )
 }

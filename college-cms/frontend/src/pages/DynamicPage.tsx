@@ -1,22 +1,20 @@
 import { useParams } from 'react-router-dom'
-import ContentBlock from '../components/ContentBlock'
-import { useApi } from '../hooks/useApi'
-import type { Page } from '../api/types'
+import { usePageBySlug } from '../api/hooks'
+import PageBlocks from '../components/PageBlocks'
+import PageHeader from '../components/PageHeader'
+import { ErrorState, Loading } from '../components/states'
 
 export default function DynamicPage() {
   const { slug } = useParams<{ slug: string }>()
-  const { data: page, loading, error } = useApi<Page>(`/pages/${slug ?? ''}`)
+  const { data: page, loading, error, refetch } = usePageBySlug(slug ?? '')
 
-  if (loading) return <p>Loading...</p>
-  if (error) return <p className="error">Page not found: {error}</p>
-  if (!page) return null
+  if (loading) return <Loading label="Loading page…" />
+  if (error || !page) return <ErrorState error={error} onRetry={refetch} />
 
   return (
     <section>
-      <h1>{page.title}</h1>
-      {page.blocks.map((block) => (
-        <ContentBlock key={block.id} block={block} />
-      ))}
+      <PageHeader title={page.title} />
+      <PageBlocks blocks={page.blocks} />
     </section>
   )
 }

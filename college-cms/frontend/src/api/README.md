@@ -1,7 +1,8 @@
-# `api/` — HTTP client and shared types
+# `api/` — HTTP client, contract types, query keys, typed hooks
 
 The **only** place in the frontend that knows how to talk to the backend.
-Everything else calls `api.get/post/put/delete`.
+Pages never build URLs by hand — they call the typed hooks in `hooks.ts`
+which use `queryKeys.ts` + `client.ts`.
 
 ## `client.ts` — the fetch wrapper
 
@@ -15,79 +16,162 @@ Relative path — no `http://localhost:4000` hardcoded. Vite's dev proxy
 (`vite.config.ts`) forwards `/api/*` to the backend in development; in
 production your web server does the same.
 
-### Core function
+### `ApiError` — every failure becomes an exception
 
 ```ts
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    headers: { 'Content-Type': 'application/json' },
-    ...init,                                  // method, body spread in
-  })
-  if (!res.ok) {
-    throw new Error(`API error ${res.status}: ${res.statusText}`)  // ← 404/500 become exceptions
-  }
-  return res.json() as Promise<T>
+class ApiError extends Error {
+  status: number              // 0 = network failure (fetch threw)
+  code: ApiErrorCode          // 'not_found' | 'validation_error' | ...
+  details?: ErrorDetail[]     // per-field validation messages
+  get isNotFound(): boolean   // status === 404
+  get isRetryable(): boolean  // 5xx or network
 }
 ```
 
-Key points for a beginner:
+`fetch` does **not** reject on 404/500 — only on network failure. The client
+checks `res.ok` and throws `ApiError`, so pages always get exceptions instead
+of silently rendering `undefined`. A fetch that throws (backend down) becomes
+`ApiError(0, 'network_error', ...)`.
 
-- **`fetch`** — the browser's built-in HTTP client (no library needed).
-- **`<T>` generic** — the *caller* decides what type comes back:
-  `api.get<Course[]>('/academics/courses')` → `Course[]`.
-  The function can't actually verify it — `as Promise<T>` is a type-level
-  promise that the shape matches. That's why `types.ts` must stay in sync
-  with the backend schema.
-- **`if (!res.ok) throw`** — this is critical. `fetch` does *not* reject on
-  404/500; it only rejects on network failure. Without this check, errors
-  would silently render as `undefined`.
+### Envelope handling
+
+The backend wraps responses:
+
+```jsonc
+{ "data": { ... } }                                  // single resource
+{ "data": [...], "meta": { page, limit, total, totalPages } }   // lists
+204 No Content                                       // deletes (→ undefined)
+{ "error": { "code", "message", "details?" } }       // errors
+```
+
+- `api.get/post/put/delete` **unwrap** `body.data` — callers receive the
+  resource directly.
+- `api.list` validates that `data` is an array and returns `{ data, meta }`
+  — `meta` powers pagination components.
+- `res.status === 204` → `undefined` (no JSON to parse).
 
 ### Exported helpers
 
 ```ts
-export const api = {
-  get:    <T>(path)          => request<T>(path),
-  post:   <T>(path, body)    => request<T>(path, { method: 'POST',  body: JSON.stringify(body) }),
-  put:    <T>(path, body)    => request<T>(path, { method: 'PUT',   body: JSON.stringify(body) }),
-  delete: <T>(path)          => request<T>(path, { method: 'DELETE' }),
+api.get<T>(path)                    // unwrap single resource
+api.list<T>(path)                   // { data: T[], meta: ListMeta }
+api.post<T>(path, body)             // JSON.stringify + Content-Type
+api.put<T>(path, body)
+api.delete<T>(path)
+```
+
+`JSON.stringify(body)` pairs with `Content-Type: application/json` and the
+backend's `express.json()` middleware.
+
+### Auth header + 401 handling
+
+```ts
+setAuthToken(token | null)           // module-level bearer token (admin login sets this)
+getAuthToken()
+setUnauthorizedHandler(fn | null)    // called once when a request 401s WITH a token set
+```
+
+`request()` adds `Authorization: Bearer <token>` to every call when a token is
+set, and fires the unauthorized handler on a `401` **before** throwing — the
+admin `AuthProvider` uses it to clear the in-memory session (frontend
+`src/admin/session.ts`). The token is never persisted to storage.
+
+## `queryClient.ts` — TanStack Query defaults
+
+```ts
+createQueryClient()  // retry: never for ApiError, ≤2 for network flukes;
+                     // staleTime 30s; no refetch-on-focus; mutations never retry
+```
+
+Admin screens use TanStack Query; the public read side still uses
+`useApi`/`useApiList`. Tests build their own client with this factory so
+validation failures don't retry into timeouts.
+
+## `queryKeys.ts` — one factory for every request path
+
+```ts
+export const queryKeys = {
+  pages: (params) => `/pages${query(params)}`,
+  pageBySlug: (slug) => `/pages/${encodeURIComponent(slug)}`,
+  streams: (params & { category }) => `/streams${query(params)}`,
+  courses: (params & { stream, degreeLevelId }) => `/academics/courses${query(params)}`,
+  ...
 }
 ```
 
-`JSON.stringify(body)` — the object must be serialized, and it pairs with
-`Content-Type: application/json` + the backend's `express.json()` middleware.
+- Every key is the **exact path** the backend serves — no URL drift.
+- `query(params)` serializes `{ page, limit, q, sort, order, ... }` and drops
+  empty/null values, so keys are stable and comparable.
+- `encodeURIComponent` on all path params (slugs, ids).
+
+### `adminKeys` — TanStack Query keys for the CMS
+
+```ts
+adminKeys.stats()                        // ['admin','stats']
+adminKeys.pages.of(params) / .root       // ['admin','pages',params] / ['admin','pages']
+adminKeys.page(id)                       // ['admin','page',id]
+adminKeys.stream(id) / adminKeys.streams.root / .of(params)
+adminKeys.courses / course / degreeLevels / degreeLevel
+adminKeys.faculty / facultyMember / excellence / excellenceItem
+adminKeys.excellenceDomains / excellenceDomain / media / mediaItem / contact
+```
+
+`.root` exists for **narrow prefix invalidation**: saving a page invalidates
+`adminKeys.pages.root` + `adminKeys.page(id)` + `stats` and touches nothing
+else (asserted in `src/admin/pages.test.tsx`).
+
+## `hooks.ts` — typed hooks on top of `useApi`
+
+| Hook | Request |
+| --- | --- |
+| `usePageBySlug(slug)` | `GET /pages/:slug` |
+| `useStreamList(params)` / `useAllStreams()` | `GET /streams` (list) |
+| `useStreamBySlug(slug)` | `GET /streams/:slug` |
+| `useDegreeLevelList(params)` | `GET /degree-levels` |
+| `useCourseList(params)` / `useCourseById(id)` | `GET /academics/courses[...]` |
+| `useAcademicDetails(streamSlug)` | `GET /academics/details/:slug` |
+| `useFacultyList(params)` / `useFacultyById(id)` | `GET /faculty[...]` |
+| `useExcellenceList(params)` | `GET /excellence` |
+| `useExcellenceDomains()` / `useExcellenceDomain(slug)` | `GET /excellence-domains[...]` |
+| `useContact()` | `GET /contact` |
+
+Each hook is a thin wrapper: build path via `queryKeys`, call `useApi` or
+`useApiList` (see `../hooks/useApi.ts`), return the result typed.
 
 ## `types.ts` — the contract with the backend
 
-Mirror images of the Drizzle schema in `../backend/src/db/schema.ts`:
+Hand-written mirrors of the backend API (see `../../backend/src/db/tables/`):
 
-| Interface | Backend table |
+| Type | Backend source |
 | --- | --- |
-| `Page` | `pages` |
-| `Course` | `courses` |
-| `FacultyMember` | `faculty` |
-| `ExcellenceItem` | `excellence` |
-| `ContentBlockData` | `pages.blocks` (jsonb array items) |
+| `Envelope` / `ListEnvelope` / `ListMeta` / `ErrorBody` / `ApiErrorCode` | response envelopes |
+| `PageListItem` / `PageWithBlocks` / `BlockView` / `PageBlockType` | pages + block views |
+| `MediaRef` | media |
+| `Stream` / `StreamWithLevels` / `DegreeLevel` | streams + degree levels |
+| `Course` | courses |
+| `FacultyMember` | faculty |
+| `ExcellenceDomain` / `ExcellenceItem` | excellence |
+| `CollegeContact` / `AcademicDetails` / `AdminStats` | contact, academic details, admin stats |
+| `Media` / `MediaRef` | media library rows (URL-referenced images) |
+| `BlockInput` | validated block payload for admin create/update |
+| `DegreeLevelWithStreams` / `FacultyDetailsResponse` | admin degree-level + stream faculty intro views |
+| `RichDoc` / `RichNode` / `RichTextRun` / ... | RichDoc JSON nodes (paragraph/heading/list) |
 
-```ts
-export interface ContentBlockData {
-  id: string
-  type: 'heading' | 'paragraph' | 'image' | 'list'   // union — only these 4 values allowed
-  content: string
-}
-```
-
-`'a' | 'b' | 'c'` is a **string literal union**: TypeScript rejects any other
-value, so a typo like `'headin'` fails at compile time.
+`BlockView` is a **discriminated union** on `type`
+(`heading | paragraph | list | image | gallery | ...`) with per-type `content`
+— so block renderers are exhaustively type-checked.
 
 > ⚠️ **Duplication risk:** these types are hand-written to match the backend.
-> A schema change on either side breaks the contract silently. Professional
-> teams generate these from OpenAPI/Zod instead of maintaining by hand.
+> A schema change on either side breaks the contract at typecheck time if
+> you're lucky, silently if not. Professional teams generate these from
+> OpenAPI instead.
 
 ## Who uses this folder
 
 | Consumer | How |
 | --- | --- |
-| `hooks/useApi.ts` | `api.get<T>(path)` |
-| `admin/PageEditor.tsx` | `api.post` / `api.put` on save |
-| `admin/CourseEditor.tsx` | `api.post` / `api.put` on save |
-| every page/component | imports types from `types.ts` |
+| `hooks/useApi.ts` | `api.get` / `api.list` with a `queryKeys` path |
+| every public page | typed hooks from `hooks.ts` |
+| all `admin/*` managers/editors | `useQuery` with `adminKeys` + `api.post/put/delete` from mutations |
+| `admin/session.ts` | `api.get('/admin/whoami')` on login; `setAuthToken`/`setUnauthorizedHandler` |
+| `tests/client.test.ts` | asserts unwrap/meta/error behavior |

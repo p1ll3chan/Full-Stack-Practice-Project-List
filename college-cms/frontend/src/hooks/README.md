@@ -3,38 +3,49 @@
 A React **hook** is a function that uses React features (state, effects) and
 can be called inside components. The naming convention: always `useXxx`.
 
-## `useApi.ts` — data fetching in one line
+## `useApi.ts` — data fetching for the whole app
+
+Two hooks, same shape — one for single resources, one for paginated lists:
 
 ```tsx
-const { data, loading, error, refetch } = useApi<Course[]>('/academics/courses')
+const { data, loading, error, refetch } = useApi<Course>('/academics/courses/11')
+
+const { data, meta, loading, error, refetch } = useApiList<Course>('/academics/courses?page=2')
 ```
 
-This single hook replaces the same three-state boilerplate in every page.
-It calls `api.get` from `../api/client.ts`.
+Pages normally don't call these directly — they use the typed wrappers in
+`../api/hooks.ts`, which build the path with `../api/queryKeys.ts` and call
+these two.
 
-### State shape (lines 4-8, 11-15)
+### State shape
 
 ```ts
 interface UseApiState<T> {
   data: T | null        // ← generic: the caller decides the type
   loading: boolean
-  error: string | null
+  error: Error | null   // ApiError (status/code) — not a string
+}
+
+interface UseApiListState<T> {
+  data: T[]             // always an array (empty while loading/error)
+  meta: ListMeta | null // page/limit/total/totalPages → <Pagination>
+  loading: boolean
+  error: Error | null
 }
 ```
 
-- **`<T>`** — generic type parameter. `useApi<Course[]>` means
-  `data` is typed `Course[] | null` inside that component.
-- Initial value is `{ data: null, loading: true, error: null }` — loading
-  starts `true` because a request is about to happen.
+`error` is the actual `Error` (usually `ApiError`), so callers can check
+`error instanceof ApiError && error.isNotFound` — `components/states.tsx`
+does exactly that to turn 404s into the not-found page.
 
-### The effect (lines 18-31)
+### The effect
 
 ```ts
 useEffect(() => {
   let cancelled = false
   api.get<T>(path)
-    .then((data) => { if (!cancelled) setState({ data, loading: false, error: null }) })
-    .catch((err: Error) => { if (!cancelled) setState({ data: null, loading: false, error: err.message }) })
+    .then((data) => { if (!cancelled) setState({ path, tick, data, loading: false, error: null }) })
+    .catch((err: Error) => { if (!cancelled) setState({ path, tick, data: null, loading: false, error: err }) })
   return () => { cancelled = true }     // ← cleanup on unmount
 }, [path, tick])
 ```
@@ -42,67 +53,95 @@ useEffect(() => {
 Three concepts to internalize:
 
 1. **`useEffect(fn, [deps])`** — runs `fn` after render, and re-runs it when
-   any value in the dependency array changes. Here: when `path` changes
-   (different endpoint) or `tick` changes (a refetch was requested).
+   any dependency changes. Here: `path` (different endpoint/params) or
+   `tick` (a refetch was requested).
 2. **The `cancelled` flag** — if the component unmounts (user navigates away)
-   before the response arrives, calling `setState` would trigger
-   *"Can't perform a React state update on an unmounted component."* The
-   cleanup function sets `cancelled = true`, and the callbacks check it.
-   This is the standard async-in-effect pattern.
-3. **`.then` / `.catch`** — resolves into success state or error state, so
-   the component always gets one of the three.
+   before the response arrives, calling `setState` would warn. The cleanup
+   sets `cancelled = true`, and the callbacks check it. This is the standard
+   async-in-effect pattern.
+3. **Freshness check instead of a loading flag** — state stores the `path`
+   and `tick` it was fetched for:
 
-### `refetch` (lines 33-36)
+   ```ts
+   // useApi (single resource)
+   const current = state.path === path && (state.tick === tick || state.data !== null) ? state : freshState(path, tick)
+   // useApiList — same idea with meta as the "have data" marker
+   const current = state.path === path && (state.tick === tick || state.meta !== null) ? state : freshListState(path, tick)
+   ```
+
+   When `path` changes (e.g. new search param), the hook *immediately*
+   reports `{ data: null, loading: true }` without a second `setState` in an
+   effect — so the UI never shows stale data from the previous path, and
+   there's no render-after-fetch flash.
+
+   When only `tick` changes (a background refetch — user hit "Try again" or a
+   SSE content event arrived), existing `data`/`meta` is **kept on screen**
+   (stale-while-revalidate): `loading` stays `false` and a failed background
+   refresh falls back to the last good payload instead of blanking the page.
+
+### Live refresh (SSE)
+
+Both hooks share a `useRefresh()` helper that subscribes once to
+`api/contentEvents.ts` (`subscribeContentEvents`) and bumps `tick` when the
+server broadcasts a content event from an admin mutation — so an edit made
+in another tab shows up on this page within ~1 s without a reload. Unmount
+unsubscribes; the shared `EventSource` closes when the last subscriber
+leaves.
+
+### `refetch`
 
 ```ts
-const refetch = useCallback(() => {
-  setState((s) => ({ ...s, loading: true, error: null }))
-  setTick((t) => t + 1)
-}, [])
+function useRefresh(): { tick: number; refetch: () => void } {
+  const [tick, setTick] = useState(0)
+  useEffect(() => subscribeContentEvents(() => setTick((t) => t + 1)), [])
+  const refetch = useCallback(() => setTick((t) => t + 1), [])
+  return { tick, refetch }
+}
 ```
 
-Instead of re-implementing the fetch, it bumps `tick` — which is in the
-dependency array — so the effect runs again. Returning `loading: true`
-immediately gives the UI a spinner while the new request is in flight.
+Instead of re-implementing the fetch, `refetch` bumps `tick` — which is in the
+dependency array — so the effect runs again. `useCallback(fn, [])` keeps the
+reference stable between renders.
 
-- **`useCallback(fn, [])`** — memoizes the function so its reference stays
-  stable between renders (prevents needless effect re-runs in children).
-
-### Return (line 38)
+### Return
 
 ```ts
-return { ...state, refetch }
+return { data, loading, error, refetch }           // useApi
+return { data, meta, loading, error, refetch }     // useApiList
 ```
-
-Spreads `{ data, loading, error }` and adds `refetch`.
 
 ## Consumers
 
-| Component | Call |
+| Consumer | Call |
 | --- | --- |
-| `pages/Home.tsx` | `useApi<Page>('/pages/home')` |
-| `pages/Academics.tsx` | `useApi<Course[]>('/academics/courses')` |
-| `pages/Faculty.tsx` | `useApi<FacultyMember[]>('/faculty')` |
-| `pages/DynamicPage.tsx` | `useApi<Page>(`/pages/${slug}`)` |
-| `admin/Dashboard.tsx` | `useApi<Stats>('/admin/stats')` **and** `useApi<Page[]>('/pages')` |
+| `api/hooks.ts` | every typed public hook (`usePageBySlug`, `useCourseList`, …) |
+| `pages/Departments.tsx` | `useStreamList` (list + meta → Pagination) |
+| `admin/Dashboard.tsx` | `useApi<AdminStats>('/admin/stats')` etc. |
+| `admin/PageEditor.tsx`, `admin/CourseEditor.tsx` | `useApi` for edit-mode loads |
 
-`Dashboard` calls the hook twice — two independent requests, two independent
-states. That's allowed; hooks are per-call, not per-component.
+Hooks are per-call, not per-component — `Departments` calls one list hook and
+`useAllStreams` (another list hook) without conflict.
 
 ## Typical usage pattern
 
 ```tsx
-const { data, loading, error } = useApi<Course[]>('/academics/courses')
+const { data, loading, error, refetch } = useCourseById(id)
 
-if (loading) return <p>Loading courses...</p>
-if (error)   return <p className="error">{error}</p>
-// here, data is guaranteed non-null (unless empty response)
+if (loading) return <Loading />
+if (error)   return <ErrorState error={error} onRetry={refetch} />
+if (!data)   return null
+```
+
+Or via typed hooks (preferred in pages):
+
+```tsx
+const { data: streams, meta, loading, error, refetch } = useStreamList({ q, category, page, limit: 9 })
 ```
 
 ## Connections
 
 ```
-THIS FOLDER ──imports──→ ../api/client.ts   (api.get)
-THIS FOLDER ──used by──→ ../pages/*, ../admin/*
-pages/admin ──also import──→ ../api/types    (for the <T> argument)
+THIS FOLDER ──imports──→ ../api/client.ts   (api.get / api.list)
+THIS FOLDER ──used by──→ ../api/hooks.ts, ../pages/*, ../admin/*
+pages ──also import──→ ../api/types, ../components/states
 ```

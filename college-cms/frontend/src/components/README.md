@@ -1,104 +1,78 @@
 # `components/` — Reusable UI pieces
 
-Small, focused, presentational components. They receive data via **props**
-and render markup — no fetching, no routing logic (except `Header`).
+Small, focused components. They receive data via **props** and render markup —
+no fetching (except `StreamNav`/`CourseNav`, which read lists for shared
+navigation) and no routing logic (except `Header`).
 
-All are **default exports** of function components:
+Most are **default exports** of function components; grouped utilities
+(`states`, `blocks`, `ExcellenceCard`) use named exports.
 
-```tsx
-export default function CourseCard({ course }: { course: Course }) { ... }
-```
+## Async state components — `states.tsx` ⭐ shared by every page
 
-`{ course }: { course: Course }` — destructures the props object and types it
-inline. `course` is required; omitting it is a compile error.
-
-## Files
-
-### `Header.tsx` — site navigation
-
-```tsx
-const links = [
-  { to: '/', label: 'Home' },
-  { to: '/academics', label: 'Academics' },
-  { to: '/faculty', label: 'Faculty' },
-  { to: '/admin', label: 'Admin' },
-]
-
-{links.map((l) => (
-  <NavLink key={l.to} to={l.to} end={l.to === '/'}>
-    {l.label}
-  </NavLink>
-))}
-```
-
-- **`NavLink`** (from `react-router-dom`) — an anchor that automatically gets
-  an `active` class when the current URL matches.
-- **`end`** — for `/` only. Without it, every path would "match" `/` as a
-  prefix, so Home would always look active.
-- **`key={l.to}`** — React requires a stable key when rendering lists.
-- The data lives in a module-level `const` so it's declared once, not on
-  every render.
-
-Rendered by `App.tsx` on **every** route (it sits outside `<Routes>`).
-
-### `Footer.tsx` — 7 lines, no props
+| Export | Renders |
+| --- | --- |
+| `Loading` | spinner + label (default `Loading…`) |
+| `ErrorState` | message + **Retry** button (`refetch`); 404 errors render `NotFoundPage` instead |
+| `EmptyState` | "nothing here yet" message + optional hint |
+| `NotFoundPage` | 404 hero with `data-testid="not-found"` + links home |
 
 ```tsx
-&copy; {new Date().getFullYear()} College CMS. All rights reserved.
+if (loading) return <Loading />
+if (error) return <ErrorState error={error} onRetry={refetch} />
+if (!data) return <EmptyState message="No results" />
 ```
 
-`{new Date().getFullYear()}` — a JS expression inside JSX braces; computes
-the year at render time.
+## Layout & chrome
 
-### `CourseCard.tsx` — one course, styled as a card
+| File | Role |
+| --- | --- |
+| `Header.tsx` | `NavLink` bar: Home, About, Departments, Academics, Excellence, Faculty, Contact, Admin — `end` on `/` so Home isn't always active. Rendered on every route by `App.tsx`. |
+| `Footer.tsx` | 7 lines, copyright with current year |
+| `PageHeader.tsx` | consistent page hero: eyebrow + `h1` title + subtitle |
 
-Pure display: takes a `Course`, emits an `<article>` with code, credits,
-title, description, department. Used by `pages/Academics.tsx`.
+## CMS rendering
 
-### `ContentBlock.tsx` — the CMS renderer ⭐ most interesting
+| File | Role |
+| --- | --- |
+| `blocks.tsx` | `HeadingBlock`, `TextBlock`, `ListBlock`, `ImageBlock`, `GalleryBlock` — one component per `BlockView` type, typed via `Extract<BlockView, { type: … }>['content']` |
+| `blockRegistry.tsx` | `blockRegistry: Record<PageBlockType, BlockRenderer>` — maps each block type to its renderer (no `switch` at call sites; unknown types are a type error) |
+| `PageBlocks.tsx` | `page.blocks.map(...)` → registry lookup → `<Fragment key>` — used by `Home`, `DynamicPage`, `CmsSection` |
+| `RichText.tsx` | renders `RichDoc` nodes (paragraph/heading/list) as React elements. **Sanitizes** hrefs (`https?`, `//`, `mailto:`, `tel:`, safe relatives only) and colors (hex/word) — never `dangerouslySetInnerHTML` |
+| `MediaImage.tsx` | `MediaLike` (`{ url, altText }`) image with `onError` → styled placeholder fallback (for missing/null media URLs) |
 
 ```tsx
-switch (block.type) {
-  case 'heading':   return <h2>{block.content}</h2>
-  case 'paragraph': return <p>{block.content}</p>
-  case 'image':     return <img src={block.content} alt="" className="content-image" />
-  case 'list':
-    return (
-      <ul>
-        {block.content.split('\n').filter(Boolean).map((item, i) => (
-          <li key={i}>{item}</li>
-        ))}
-      </ul>
-    )
-  default: return null
-}
+<PageBlocks blocks={page.blocks} />
 ```
 
-This is the bridge between stored data and rendered HTML:
+## Cards
 
-- `block.type` is the union `'heading' | 'paragraph' | 'image' | 'list'`
-  defined in `api/types.ts` — the `default` branch is still needed for
-  runtime safety against bad/stale data.
-- **List trick:** the DB stores list items as one newline-separated string.
-  `.split('\n')` → array, `.filter(Boolean)` → drops empty lines, `.map()` →
-  `<li>` elements.
-- Each `<li>` gets `key={i}` (index) — acceptable here because the list is
-  static per render.
+| File | Props | Used by |
+| --- | --- | --- |
+| `DepartmentCard.tsx` | `{ stream, image? }` | `Departments`, `Home` preview |
+| `CourseCard.tsx` | `{ course, to? }` | `Academics`, `CourseNav` (optional `to` wraps in a link) |
+| `FacultyCard.tsx` | `{ member, streamSlug? }` | `Faculty`, `FacultyStream` |
+| `ExcellenceCard.tsx` | `ExcellenceDomainCard { domain }`, `ExcellenceItemCard { item }` | `Excellence`, `ExcellenceDomain` |
 
-Used by `pages/Home.tsx` and `pages/DynamicPage.tsx` to turn `page.blocks[]`
-into real DOM.
+Cards are pure display: API object in, `<article>` out. Hrefs are built from
+slugs/ids (e.g. `/departments/:slug`, `/academics/courses/:id`).
+
+## Shared navigation
+
+| File | Props | Role |
+| --- | --- | --- |
+| `StreamNav.tsx` | `{ base, activeSlug, allLabel, allTo }` | horizontal chips of all departments linking under a `base` path (`/academics/streams`, `/faculty/streams`, `/departments`) — the shared stream navigation between Academics and Faculty |
+| `CourseNav.tsx` | `{ streamSlug }` | list of courses for a stream → `/academics/courses/:id` (shared on academic + faculty detail pages) |
+| `Pagination.tsx` | `{ meta, onPageChange }` | prev/next + `Page x of y · n results`; hidden when only one page |
 
 ## Connections
 
-| Component | Used by | Props come from |
-| --- | --- | --- |
-| `Header` | `App.tsx` (all routes) | none |
-| `Footer` | `App.tsx` (all routes) | none |
-| `CourseCard` | `pages/Academics.tsx` | `useApi<Course[]>` |
-| `ContentBlock` | `pages/Home.tsx`, `pages/DynamicPage.tsx` | `page.blocks` from `useApi<Page>` |
-
 ```
 App.tsx ──renders──→ Header, Footer
-Academics ──maps──→ CourseCard
-Home / DynamicPage ──maps──→ ContentBlock
+Home / DynamicPage / CmsSection ──render──→ PageBlocks → blockRegistry → blocks
+Departments / Home ──map──→ DepartmentCard
+Academics / CourseNav ──map──→ CourseCard
+Faculty / FacultyStream ──map──→ FacultyCard
+Excellence / ExcellenceDomain ──map──→ ExcellenceCard
+AcademicDetail / FacultyStream ──render──→ StreamNav, CourseNav
+every page ──uses──→ states.tsx (Loading / ErrorState / EmptyState)
 ```

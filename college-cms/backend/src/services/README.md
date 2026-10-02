@@ -6,113 +6,123 @@ throw `HttpError` when something's wrong.
 **Key rule: services know nothing about HTTP.** No `req`, no `res`, no status
 codes. That's what makes them reusable and unit-testable.
 
-Every file in here follows the **identical 5-function template** — understand
-one and you know all of them.
-
 ## The template (using `courseService.ts`)
 
-### Read all — lines 6-8
+### List (with filters, search, sort, pagination)
 
 ```ts
-export async function listCourses(): Promise<Course[]> {
-  return db.select().from(courses).orderBy(asc(courses.code))
+export const courseSortColumns = { code: courses.code, title: courses.title, ... }
+
+export async function listCourses(query: ListQuery): Promise<{ rows: Course[]; total: number }> {
+  const where = [query.active ? eq(courses.isActive, true) : undefined, ...]
+  const total = await db.select({ count: sql<number>`count(*)::int` }).from(courses).where(and(...where))
+  const rows = await db.select().from(courses)
+    .where(and(...where))
+    .orderBy(sortDirection(query.sort, query.order, courseSortColumns))
+    .limit(query.limit).offset((query.page - 1) * query.limit)
+  return { rows, total }
 }
 ```
 
-Drizzle builds: `SELECT * FROM courses ORDER BY code ASC`
+- `active: true` is passed by **public** controllers (visibility rule);
+  admin lists pass it only when `?active=` was supplied.
+- Search uses `likePattern` (`like.ts`) — `ilike` with `%`/`_`/`\` escaped so
+  user input can't change the pattern's meaning. Values are still
+  parameterized by Drizzle → immune to SQL injection.
+- `total` is cast `count(*)::int` because Postgres `bigint` arrives as a
+  JS bigint-ish string.
 
-### Read one — lines 10-14
-
-```ts
-const [course] = await db.select().from(courses).where(eq(courses.id, id)).limit(1)
-if (!course) throw new HttpError(404, `Course ${id} not found`)
-return course
-```
-
-- Drizzle returns an **array**; destructuring `const [course]` grabs the first
-  row — `undefined` if nothing matched.
-- The `if (!course)` → `throw new HttpError(404, ...)` is how "not found"
-  becomes a JSON 404 response (caught later by `errorHandler`).
-
-### Create — lines 16-19
+### Read one (visibility + clean 404)
 
 ```ts
-const [course] = await db.insert(courses).values(input).returning()
+const [row] = await db.select().from(courses).where(and(eq(courses.id, id), visible)).limit(1)
+if (!row) throw new HttpError(404, 'Course not found', 'not_found')
 ```
 
-`.returning()` — Postgres-specific: returns the inserted row in the same
-round-trip instead of needing a second SELECT.
+`visible` differs per controller call: public reads add the visibility
+fragment, admin reads don't (they can see drafts/inactive rows).
 
-### Update — lines 21-25
+### Create / update / delete
 
 ```ts
-await getCourse(id)              // ← existence check first → clean 404
-const [course] = await db.update(courses).set(input).where(eq(courses.id, id)).returning()
+const [row] = await db.insert(courses).values(input).returning()   // 201
+await getCourseRow(id, false)                                      // existence → 404
+const [row] = await db.update(courses).set(input).where(...).returning()
+await db.delete(courses).where(...)                                // controller responds 204
 ```
 
-Input is `Partial<NewCourse>` — **every field optional**, so callers can
-update a subset (the controller builds that subset with the spread trick).
+Unique-slug collisions and FK violations are **not** pre-checked with a
+SELECT — the INSERT/UPDATE is allowed to fail, and
+`middleware/error.ts` maps the Postgres constraint (`courses_slug_unique`
+→ 409, FK → 400 `invalid_reference`). Deletes that must answer "why" use
+explicit in-use pre-checks → 409 (`courseService.deleteCourse`).
 
-### Delete — lines 27-30
+## Visibility fragments
 
-```ts
-await getCourse(id)              // ← existence check → 404 instead of silent no-op
-await db.delete(courses).where(eq(courses.id, id))
-```
+Public list/detail queries append these (raw `sql` templates so they compose):
 
-Returns `Promise<void>` — the controller responds `204`.
+| Resource | Fragment |
+| --- | --- |
+| pages / page blocks | `published = true` |
+| streams, courses, degree levels, excellence, domains | `is_active = true` |
+| faculty | `stream_id is null or stream is active` (`facultyService.streamVisible`) |
+| excellence items | `domain_id is null or domain is active` (`excellenceService.domainVisible`) |
 
-## Drizzle operators you'll see
+Details endpoints (`academicService.getPublicDetails`) throw 404 when the
+stream is missing or inactive.
 
-Imported from `drizzle-orm`:
+> ⚠️ Inside `` sql`...` `` templates, reference Drizzle columns with
+> interpolation (`${streams.isActive}`) — hand-written camelCase
+> (`streams.isActive` as literal SQL) will crash at query time because the
+> real column is `is_active`.
 
-| Helper | SQL | Used for |
-| --- | --- | --- |
-| `eq(a, b)` | `a = b` | `WHERE id = 7` |
-| `asc(col)` | `ORDER BY col ASC` | sorting |
+## Reorder
 
-Drizzle **parameterizes** every value automatically → immune to SQL injection.
-Never string-concatenate user input into SQL.
+`reorder.ts` → `assertPermutation(requestedIds, existingIds, resource)`:
+
+- requested ids must be **every** existing id exactly once
+- otherwise → 400 `validation_error` with `details`
+  (`unknown id` / `missing ids` / `duplicate id`)
+- on success, positions are assigned `index * 10` in one transaction
+
+Used by streams, degree levels, pages (top level + blocks), excellence.
+
+## Multi-table writes run in transactions
+
+`pageService.createPage` / `updatePage` (page + blocks + gallery items),
+`facultyService.createFaculty` (member + details), and reorders all use
+`db.transaction(...)` so a partial failure rolls everything back.
 
 ## Files
 
-| File | Table(s) | List order |
-| --- | --- | --- |
-| `pageService.ts` | `pages` | `id` ascending |
-| `courseService.ts` | `courses` | `code` ascending |
-| `facultyService.ts` | `faculty` **and** `excellence` | `name` / `year` ascending |
-
-`facultyService.ts` is slightly bigger — it holds CRUD for `faculty` plus two
-extra functions for the `excellence` table (`listExcellence`,
-`createExcellence`), because `routes/excellence.ts` reuses this controller.
-
-## Exports used by controllers
-
-| Service | Functions |
+| File | Table(s) |
 | --- | --- |
-| `pageService` | `listPages`, `getPageBySlug`, `getPageById`, `createPage`, `updatePage`, `deletePage` |
-| `courseService` | `listCourses`, `getCourse`, `createCourse`, `updateCourse`, `deleteCourse` |
-| `facultyService` | `listFaculty`, `getFaculty`, `createFaculty`, `updateFaculty`, `deleteFaculty`, `listExcellence`, `createExcellence` |
-
-Note `getPageBySlug` / `getPageById` are exported because `pageController`
-exposes two different read routes.
+| `pageService.ts` | `pages`, `page_blocks`, `page_block_gallery_items` (+ media join) |
+| `streamService.ts` | `streams`, `academic_details`, `faculty_details` (stream-level) |
+| `courseService.ts` | `courses` (+ stream/degree existence + composite FK checks) |
+| `degreeLevelService.ts` | `degree_levels`, `degree_level_streams` |
+| `facultyService.ts` | `faculty_members`, `faculty_details` |
+| `excellenceService.ts` | `excellence`, `excellence_domains` |
+| `contactService.ts` | `college_contact` (singleton upsert) |
+| `academicService.ts` | public academic details |
+| `statsService.ts` | dashboard counts |
+| `like.ts` | `likeEscape` / `likePattern` helpers |
+| `reorder.ts` | `assertPermutation` |
 
 ## Connections
 
 ```
 controllers/*.ts ──imports──→ THIS FOLDER
 THIS FOLDER ──imports──→ ../db/index.ts        (db)
-THIS FOLDER ──imports──→ ../db/schema.ts       (tables + types: Page, NewPage, Course...)
+THIS FOLDER ──imports──→ ../db/tables/*        (schema + row types)
 THIS FOLDER ──imports──→ ../middleware/error.ts (HttpError)
 ```
-
-`routes/admin.ts` skips this folder entirely and queries `db` directly.
 
 ## Where a 404 actually becomes a response
 
 ```
-service throws HttpError(404, "Course 7 not found")
-  → Express catches it (async rejection propagates)
+service throws HttpError(404, 'Course not found', 'not_found')
+  → Express catches the rejection
   → middleware/error.ts errorHandler
-  → res.status(404).json({ error: "Course 7 not found" })
+  → res.status(404).json({ error: { code: 'not_found', message: '...' } })
 ```

@@ -8,17 +8,22 @@
     "build": "tsc",
     "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "db:import-departments": "tsx src/scripts/importDepartments.ts",
+    "db:seed": "tsx src/scripts/seedCms.ts"
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "csv-parse": "^7.0.3",
     "dotenv": "^17.2.4",
     "drizzle-orm": "^0.45.3",
     "express": "^5.2.1",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
