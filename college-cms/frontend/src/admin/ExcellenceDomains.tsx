@@ -233,7 +233,7 @@ function DomainForm({ domain, invalidate }: { domain: ExcellenceDomain | null; i
           />
         </FormField>
         <div className="form-grid">
-          <FormField label="Color" hint="hex, e.g. #2563eb" error={form.errors.color}>
+          <FormField label="Color" hint="hex, e.g. #17907A" error={form.errors.color}>
             <input value={form.values.color} onChange={(event) => form.setField('color', event.target.value)} />
           </FormField>
           <FormField label="Sort order" error={form.errors.sortOrder}>

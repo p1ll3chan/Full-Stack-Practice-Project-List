@@ -1,8 +1,53 @@
+/* ---------- Design tokens ---------- */
+
+:root {
+  /* colour */
+  --color-primary: #0e6e5f;
+  --color-primary-dark: #0a5247;
+  --color-primary-light: #17907a;
+  --color-accent: #2bae9a;
+  --color-ink: #1b2b28;
+  --color-muted: #5b6b68;
+  --color-surface: #ffffff;
+  --color-surface-soft: #eef6f4;
+  --color-bg: #f7faf9;
+  --color-border: #d5e6e2;
+  --color-border-strong: #b9d3cd;
+  --color-danger: #b3262e;
+  --color-success: #166534;
+  --color-success-bg: #dcfce7;
+  --color-warning: #854d0e;
+  --color-warning-bg: #fef9c3;
+
+  /* radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+
+  /* elevation */
+  --shadow-card: 0 4px 16px rgba(14, 110, 95, 0.08);
+  --shadow-hover: 0 8px 24px rgba(14, 110, 95, 0.14);
+
+  /* spacing (4px scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+
+  /* layout + motion */
+  --container-public: 1040px;
+  --container-admin: 1200px;
+  --transition: 200ms ease;
+}
+
 :root {
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   line-height: 1.5;
-  color: #1a1a2e;
-  background: #fafafa;
+  color: var(--color-ink);
+  background: var(--color-bg);
 }
 
 * {
@@ -18,8 +63,8 @@ body {
   left: -9999px;
   z-index: 100;
   padding: 0.5rem 1rem;
-  background: #16213e;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .skip-link:focus {
@@ -42,8 +87,8 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 1rem 2rem;
-  background: #16213e;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .site-header nav {
@@ -52,13 +97,13 @@ body {
 }
 
 .site-header a {
-  color: #cbd5e1;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
 }
 
 .site-header a.active,
 .site-header a:hover {
-  color: #fff;
+  color: var(--color-surface);
 }
 
 .brand {
@@ -69,12 +114,12 @@ body {
 .site-footer {
   padding: 1.5rem;
   text-align: center;
-  color: #64748b;
-  border-top: 1px solid #e2e8f0;
+  color: var(--color-muted);
+  border-top: 1px solid var(--color-border);
 }
 
 .error {
-  color: #b91c1c;
+  color: var(--color-danger);
 }
 
 .course-grid,
@@ -87,8 +132,8 @@ body {
 .course-card,
 .faculty-card,
 .stat-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -96,7 +141,7 @@ body {
 .course-card-header {
   display: flex;
   justify-content: space-between;
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.85rem;
 }
 
@@ -107,7 +152,7 @@ body {
 .course-dept,
 .faculty-dept,
 .faculty-title {
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 
@@ -130,7 +175,7 @@ body {
 }
 
 .stat-label {
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .admin-actions,
@@ -146,22 +191,22 @@ body {
 .btn-primary {
   padding: 0.5rem 1rem;
   border-radius: 6px;
-  border: 1px solid #16213e;
-  background: #fff;
+  border: 1px solid var(--color-primary);
+  background: var(--color-surface);
   cursor: pointer;
   text-decoration: none;
-  color: #16213e;
+  color: var(--color-primary);
 }
 
 .btn-primary {
-  background: #16213e;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .btn-danger {
-  border: 1px solid #b91c1c;
-  color: #b91c1c;
-  background: #fff;
+  border: 1px solid var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-surface);
   border-radius: 6px;
   padding: 0.35rem 0.75rem;
   cursor: pointer;
@@ -176,7 +221,7 @@ body {
   display: flex;
   justify-content: space-between;
   padding: 0.5rem 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
 }
 
 .badge {
@@ -186,13 +231,13 @@ body {
 }
 
 .badge-live {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--color-success-bg);
+  color: var(--color-success);
 }
 
 .badge-draft {
-  background: #fef9c3;
-  color: #854d0e;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
 }
 
 label {
@@ -212,7 +257,7 @@ select {
   width: 100%;
   margin-top: 0.25rem;
   padding: 0.5rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border-strong);
   border-radius: 6px;
   font: inherit;
   font-weight: 400;
@@ -244,7 +289,7 @@ label.checkbox input {
 
 .page-eyebrow {
   margin: 0 0 0.25rem;
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.85rem;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -252,17 +297,17 @@ label.checkbox input {
 
 .page-subtitle {
   margin: 0;
-  color: #475569;
+  color: var(--color-ink);
   font-size: 1.05rem;
 }
 
 .loading-state {
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .state-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.25rem;
   margin: 1rem 0;
@@ -273,7 +318,7 @@ label.checkbox input {
 }
 
 .empty-hint {
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .not-found {
@@ -292,7 +337,7 @@ label.checkbox input {
   width: 100%;
   height: auto;
   border-radius: 6px;
-  background: #eef2f7;
+  background: var(--color-surface-soft);
 }
 
 .media-fallback {
@@ -302,9 +347,9 @@ label.checkbox input {
   justify-content: center;
   gap: 0.35rem;
   min-height: 140px;
-  color: #94a3b8;
-  border: 1px dashed #cbd5e1;
-  background: #f8fafc;
+  color: var(--color-muted);
+  border: 1px dashed var(--color-border-strong);
+  background: var(--color-surface-soft);
 }
 
 .media-fallback span {
@@ -325,7 +370,7 @@ label.checkbox input {
 .content-image figcaption,
 .gallery-block figcaption,
 .gallery-item figcaption {
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.85rem;
   margin-top: 0.35rem;
 }
@@ -348,8 +393,8 @@ label.checkbox input {
 
 .programme-text {
   white-space: pre-wrap;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -363,8 +408,8 @@ label.checkbox input {
 }
 
 .dept-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   overflow: hidden;
   display: flex;
@@ -393,19 +438,19 @@ label.checkbox input {
 
 .dept-badge {
   align-self: flex-start;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--color-border);
+  color: var(--color-ink);
 }
 
 .dept-tagline {
   margin: 0;
-  color: #475569;
+  color: var(--color-ink);
   font-size: 0.95rem;
 }
 
 .dept-desc {
   margin: 0;
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 
@@ -418,9 +463,9 @@ label.checkbox input {
 }
 
 .domain-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
-  border-top: 4px solid #16213e;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-top: 4px solid var(--color-primary);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -430,8 +475,8 @@ label.checkbox input {
 }
 
 .excellence-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1rem;
 }
@@ -453,24 +498,24 @@ label.checkbox input {
 .chip {
   display: inline-block;
   padding: 0.35rem 0.85rem;
-  border: 1px solid #cbd5e1;
+  border: 1px solid var(--color-border-strong);
   border-radius: 999px;
-  background: #fff;
-  color: #334155;
+  background: var(--color-surface);
+  color: var(--color-ink);
   text-decoration: none;
   font-size: 0.9rem;
   cursor: pointer;
 }
 
 .chip:hover {
-  border-color: #16213e;
-  color: #16213e;
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .chip.active {
-  background: #16213e;
-  border-color: #16213e;
-  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .nav-heading {
@@ -482,14 +527,14 @@ label.checkbox input {
   list-style: none;
   padding: 0;
   margin: 0;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-surface);
   overflow: hidden;
 }
 
 .course-nav-list li + li {
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
 }
 
 .course-nav-link {
@@ -498,12 +543,12 @@ label.checkbox input {
   align-items: baseline;
   padding: 0.6rem 0.75rem;
   text-decoration: none;
-  color: #1a1a2e;
+  color: var(--color-ink);
 }
 
 .course-nav-link:hover,
 .course-nav-link.active {
-  background: #f1f5f9;
+  background: var(--color-surface-soft);
 }
 
 /* filters + pagination */
@@ -534,7 +579,7 @@ label.checkbox input {
 }
 
 .pagination-status {
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 
@@ -554,7 +599,7 @@ label.checkbox input {
 .course-meta {
   display: flex;
   gap: 1rem;
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.95rem;
 }
 
@@ -569,8 +614,8 @@ label.checkbox input {
 /* contact */
 
 .contact-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 1.25rem;
   margin-top: 1.5rem;
@@ -634,8 +679,8 @@ main.container:has(.admin-shell) {
     'topbar topbar'
     'sidebar main';
   gap: 0;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface-soft);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -646,19 +691,19 @@ main.container:has(.admin-shell) {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: #16213e;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .admin-brand {
-  color: #fff;
+  color: var(--color-surface);
   font-weight: 700;
   text-decoration: none;
 }
 
 .admin-menu-toggle {
   display: none;
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .admin-sidebar {
@@ -666,8 +711,8 @@ main.container:has(.admin-shell) {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background: #fff;
-  border-right: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
   padding: 1rem 0.75rem;
 }
 
@@ -684,17 +729,17 @@ main.container:has(.admin-shell) {
   display: block;
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
-  color: #334155;
+  color: var(--color-ink);
   text-decoration: none;
 }
 
 .admin-nav a:hover {
-  background: #f1f5f9;
+  background: var(--color-surface-soft);
 }
 
 .admin-nav a.active {
-  background: #16213e;
-  color: #fff;
+  background: var(--color-primary);
+  color: var(--color-surface);
 }
 
 .admin-sidebar-footer {
@@ -702,14 +747,14 @@ main.container:has(.admin-shell) {
   flex-direction: column;
   gap: 0.5rem;
   padding-top: 1rem;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--color-border);
   font-size: 0.9rem;
 }
 
 .admin-role {
   align-self: flex-start;
-  background: #e2e8f0;
-  color: #334155;
+  background: var(--color-border);
+  color: var(--color-ink);
   padding: 0.15rem 0.5rem;
   border-radius: 999px;
   font-size: 0.75rem;
@@ -718,7 +763,7 @@ main.container:has(.admin-shell) {
 }
 
 .admin-view-site {
-  color: #334155;
+  color: var(--color-ink);
 }
 
 .admin-main {
@@ -747,8 +792,8 @@ main.container:has(.admin-shell) {
 }
 
 .admin-card {
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 1.25rem;
   margin: 1rem 0;
@@ -786,14 +831,14 @@ main.container:has(.admin-shell) {
 
 .field-hint {
   margin: 0.25rem 0 0;
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.85rem;
   font-weight: 400;
 }
 
 .field-error {
   margin: 0.35rem 0 0;
-  color: #b91c1c;
+  color: var(--color-danger);
   font-size: 0.875rem;
   font-weight: 400;
 }
@@ -801,7 +846,7 @@ main.container:has(.admin-shell) {
 .field-invalid input,
 .field-invalid textarea,
 .field-invalid select {
-  border-color: #b91c1c;
+  border-color: var(--color-danger);
 }
 
 .save-status {
@@ -811,15 +856,15 @@ main.container:has(.admin-shell) {
 }
 
 .save-saving {
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .save-saved {
-  color: #166534;
+  color: var(--color-success);
 }
 
 .save-error {
-  color: #b91c1c;
+  color: var(--color-danger);
 }
 
 .confirm-group {
@@ -845,8 +890,8 @@ main.container:has(.admin-shell) {
 .admin-table {
   width: 100%;
   border-collapse: collapse;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   overflow: hidden;
   font-size: 0.95rem;
@@ -856,16 +901,16 @@ main.container:has(.admin-shell) {
 .admin-table td {
   padding: 0.6rem 0.75rem;
   text-align: left;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--color-border);
   vertical-align: middle;
 }
 
 .admin-table th {
-  background: #f8fafc;
+  background: var(--color-surface-soft);
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .admin-table tr:last-child td {
@@ -880,7 +925,7 @@ main.container:has(.admin-shell) {
 }
 
 .table-expand-row td {
-  background: #f8fafc;
+  background: var(--color-surface-soft);
 }
 
 .media-thumb .media-frame {
@@ -908,9 +953,9 @@ main.container:has(.admin-shell) {
 }
 
 .block-row {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #fff;
+  background: var(--color-surface);
   padding: 0.75rem;
 }
 
@@ -925,7 +970,7 @@ main.container:has(.admin-shell) {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #64748b;
+  color: var(--color-muted);
 }
 
 .block-text {
@@ -944,13 +989,13 @@ main.container:has(.admin-shell) {
 .block-form {
   margin-top: 0.75rem;
   padding-top: 0.75rem;
-  border-top: 1px dashed #cbd5e1;
+  border-top: 1px dashed var(--color-border-strong);
 }
 
 .block-form-type {
   margin: 0;
   font-weight: 600;
-  color: #334155;
+  color: var(--color-ink);
 }
 
 .add-block-bar {
@@ -967,9 +1012,9 @@ main.container:has(.admin-shell) {
 }
 
 .preview-panel {
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed var(--color-border-strong);
   border-radius: 8px;
-  background: #f8fafc;
+  background: var(--color-surface-soft);
   padding: 1rem;
   margin-top: 0.75rem;
 }
@@ -987,17 +1032,17 @@ main.container:has(.admin-shell) {
 
 .media-picker-preview span {
   font-size: 0.85rem;
-  color: #64748b;
+  color: var(--color-muted);
   overflow-wrap: anywhere;
 }
 
 .media-add-form,
 .media-edit-form {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 0.75rem;
   margin: 0.75rem 0;
-  background: #f8fafc;
+  background: var(--color-surface-soft);
 }
 
 .gallery-picker-list {
@@ -1010,10 +1055,10 @@ main.container:has(.admin-shell) {
 }
 
 .gallery-picker-list li {
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border);
   border-radius: 8px;
   padding: 0.5rem;
-  background: #fff;
+  background: var(--color-surface);
 }
 
 .gallery-picker-list .media-frame {
@@ -1034,7 +1079,7 @@ main.container:has(.admin-shell) {
 
 .check-list li {
   padding: 0.35rem 0;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid var(--color-surface-soft);
 }
 
 .check-list .badge {
@@ -1055,8 +1100,8 @@ main.container:has(.admin-shell) {
 .login-card {
   width: 100%;
   max-width: 420px;
-  background: #fff;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 10px;
   padding: 1.5rem;
 }
@@ -1066,7 +1111,7 @@ main.container:has(.admin-shell) {
 }
 
 .login-hint {
-  color: #64748b;
+  color: var(--color-muted);
   font-size: 0.9rem;
 }
 
@@ -1095,7 +1140,7 @@ main.container:has(.admin-shell) {
   .admin-sidebar {
     display: none;
     border-right: none;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--color-border);
   }
 
   .admin-shell.menu-open .admin-sidebar {
