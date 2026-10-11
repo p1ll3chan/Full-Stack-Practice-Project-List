@@ -109,6 +109,7 @@ export default function Departments() {
       )}
       {!loading && !error && streams.length > 0 && (
         <>
+          <h2 className="visually-hidden">All departments</h2>
           <ul className="card-grid">
             {streams.map((stream) => (
               <li key={stream.id}>

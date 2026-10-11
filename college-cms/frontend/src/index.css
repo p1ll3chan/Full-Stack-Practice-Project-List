@@ -13,6 +13,8 @@
   --color-bg: #f7faf9;
   --color-border: #d5e6e2;
   --color-border-strong: #b9d3cd;
+  /* input boundaries need 3:1 against white/surface-soft (WCAG 1.4.11); border-strong is decorative only */
+  --color-border-input: #7a918b;
   --color-danger: #b3262e;
   --color-danger-bg: #fdecee;
   --color-success: #166534;
@@ -53,7 +55,7 @@
 
   /* public shell: 40px on mobile, 64-96px on desktop */
   --section-pad: clamp(40px, 4vw + 24px, 96px);
-  --hero-gradient: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary-light) 100%);
+  --hero-gradient: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
 }
 
 /* ---------- Reset + base ---------- */
@@ -132,11 +134,11 @@ h3 {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--color-primary-light);
+  color: var(--color-primary);
 }
 
 :focus-visible {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -518,9 +520,7 @@ main.container:has(.hero) {
 }
 
 /* shared card grid for every public list (rendered as <ul>, one <li> per card) */
-.card-grid,
-.course-grid,
-.faculty-grid {
+.card-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 24px;
@@ -540,20 +540,12 @@ main.container:has(.hero) {
   padding: 1rem;
 }
 
-.course-card-header {
-  display: flex;
-  justify-content: space-between;
-  color: var(--color-muted);
-  font-size: 0.85rem;
-}
-
 .course-code {
   font-weight: 600;
 }
 
 .course-dept,
-.faculty-dept,
-.faculty-title {
+.faculty-dept {
   color: var(--color-muted);
   font-size: 0.9rem;
 }
@@ -580,7 +572,6 @@ main.container:has(.hero) {
   color: var(--color-muted);
 }
 
-.admin-actions,
 .editor-actions,
 .quick-links {
   display: flex;
@@ -593,8 +584,7 @@ main.container:has(.hero) {
 
 .btn,
 .btn-primary,
-.btn-danger,
-.btn-ghost {
+.btn-danger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -647,16 +637,6 @@ main.container:has(.hero) {
   background: var(--color-danger-bg);
 }
 
-.btn-ghost {
-  background: transparent;
-  border-color: transparent;
-  color: var(--color-primary);
-}
-
-.btn-ghost:hover:not(:disabled) {
-  background: var(--color-surface-soft);
-}
-
 .btn:active:not(:disabled) {
   transform: translateY(0);
   box-shadow: none;
@@ -664,8 +644,7 @@ main.container:has(.hero) {
 
 .btn:disabled,
 .btn-primary:disabled,
-.btn-danger:disabled,
-.btn-ghost:disabled {
+.btn-danger:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
@@ -676,12 +655,6 @@ main.container:has(.hero) {
   min-height: 36px;
   padding: 6px 12px;
   font-size: 0.85rem;
-}
-
-.btn-lg {
-  min-height: 52px;
-  padding: 14px 24px;
-  font-size: 1.05rem;
 }
 
 .admin-list {
@@ -713,8 +686,7 @@ main.container:has(.hero) {
   color: var(--color-ink);
 }
 
-.badge-live,
-.badge-saved {
+.badge-live {
   background: var(--color-success-bg);
   color: var(--color-success);
 }
@@ -722,17 +694,6 @@ main.container:has(.hero) {
 .badge-draft {
   background: var(--color-warning-bg);
   color: var(--color-warning);
-}
-
-.badge-info {
-  background: var(--color-surface-soft);
-  color: var(--color-primary);
-  box-shadow: inset 0 0 0 1px var(--color-border-strong);
-}
-
-.badge-new {
-  background: var(--color-danger);
-  color: var(--color-surface);
 }
 
 label {
@@ -755,7 +716,7 @@ select {
   min-height: 44px;
   margin-top: 0.25rem;
   padding: 0.5rem 0.75rem;
-  border: 1px solid var(--color-border-strong);
+  border: 1px solid var(--color-border-input);
   border-radius: var(--radius-sm);
   background: var(--color-surface);
   color: var(--color-ink);
@@ -795,27 +756,17 @@ select:focus {
   box-shadow: 0 0 0 3px rgba(23, 144, 122, 0.2);
 }
 
-/* error state: applied by the .field-invalid wrapper or .is-invalid on the control */
+/* error state: applied by the .field-invalid wrapper */
 .field-invalid input,
 .field-invalid textarea,
-.field-invalid select,
-.is-invalid {
+.field-invalid select {
   border-color: var(--color-danger);
 }
 
 .field-invalid input:focus,
 .field-invalid textarea:focus,
-.field-invalid select:focus,
-.is-invalid:focus {
+.field-invalid select:focus {
   box-shadow: 0 0 0 3px rgba(179, 38, 46, 0.2);
-}
-
-.block-editor {
-  display: grid;
-  grid-template-columns: 160px 1fr auto;
-  gap: 0.5rem;
-  align-items: start;
-  margin-bottom: 0.75rem;
 }
 
 /* ---------- Phase 3 additions ---------- */
@@ -931,6 +882,8 @@ select:focus {
 }
 
 .programme-text {
+  max-width: 68ch;
+  line-height: 1.7;
   white-space: pre-wrap;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -952,6 +905,7 @@ select:focus {
 }
 
 .dept-card-body {
+  flex: 1;
   padding: 1rem;
   display: flex;
   flex-direction: column;
@@ -969,12 +923,6 @@ select:focus {
 
 .dept-card h3 a:hover {
   text-decoration: underline;
-}
-
-.dept-badge {
-  align-self: flex-start;
-  background: var(--color-border);
-  color: var(--color-ink);
 }
 
 .dept-tagline {
@@ -1032,7 +980,7 @@ select:focus {
 .chip {
   display: inline-flex;
   align-items: center;
-  min-height: 36px;
+  min-height: 44px;
   padding: 0.35rem 0.85rem;
   border: 1px solid var(--color-border-strong);
   border-radius: 999px;
@@ -1134,21 +1082,11 @@ button.chip:hover {
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   gap: 1.5rem;
   align-items: start;
+  margin-top: var(--space-6);
 }
 
 .detail-side {
   min-width: 0;
-}
-
-.course-meta {
-  display: flex;
-  gap: 1rem;
-  color: var(--color-muted);
-  font-size: 0.95rem;
-}
-
-.faculty-stream {
-  font-size: 0.9rem;
 }
 
 .home-preview {
@@ -1301,7 +1239,7 @@ main.container:has(.admin-shell) {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  background: var(--color-primary);
+  background: var(--color-primary-dark);
   color: var(--color-surface);
 }
 
@@ -1348,8 +1286,11 @@ main.container:has(.admin-shell) {
 }
 
 .admin-nav a.active {
-  background: var(--color-primary);
-  color: var(--color-surface);
+  background: var(--color-surface-soft);
+  color: var(--color-primary-dark);
+  font-weight: 600;
+  border-radius: 0 6px 6px 0;
+  box-shadow: inset 3px 0 0 var(--color-primary);
 }
 
 .admin-sidebar-footer {
@@ -1548,6 +1489,7 @@ main.container:has(.admin-shell) {
 .media-thumb .media-frame {
   width: 64px;
   min-height: 44px;
+  aspect-ratio: 64 / 44;
   object-fit: cover;
 }
 
@@ -1709,12 +1651,17 @@ main.container:has(.admin-shell) {
 }
 
 .login-screen {
+  position: relative;
+  overflow: hidden;
   display: flex;
   justify-content: center;
-  padding: 3rem 0;
+  padding: 3.5rem 1rem;
+  background: var(--hero-gradient);
 }
 
 .login-card {
+  position: relative;
+  align-self: center;
   width: 100%;
   max-width: 420px;
   background: var(--color-surface);
@@ -1834,20 +1781,16 @@ main.container:has(.admin-shell) {
 /* ---------- Card parts ---------- */
 
 .card-title {
-  margin: 0 0 var(--space-2);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
   font-family: var(--font-heading);
   font-size: 1.05rem;
   font-weight: 700;
   line-height: 1.3;
   color: var(--color-ink);
-}
-
-.card-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  color: var(--color-muted);
-  font-size: 0.85rem;
 }
 
 .card-footer {
@@ -2009,10 +1952,6 @@ main.container:has(.admin-shell) {
   object-fit: cover;
 }
 
-.dept-card-body {
-  flex: 1;
-}
-
 .card-eyebrow {
   display: block;
   font-size: 0.75rem;
@@ -2020,14 +1959,6 @@ main.container:has(.admin-shell) {
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-primary);
-}
-
-.card-title {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 0;
 }
 
 /* the title link is the only <a> in a card; its ::after covers the whole card */
@@ -2056,7 +1987,7 @@ main.container:has(.admin-shell) {
 .faculty-card:has(.card-stretched:focus-visible),
 .dept-card:has(.card-stretched:focus-visible),
 .domain-card:has(.card-stretched:focus-visible) {
-  outline: 2px solid var(--color-accent);
+  outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
 
@@ -2117,10 +2048,6 @@ main.container:has(.admin-shell) {
   transform: translateX(3px);
 }
 
-.card-footer {
-  margin-top: auto;
-}
-
 /* loading: six placeholder cards */
 .card-grid-loading .card-grid {
   margin: var(--space-2) 0;
@@ -2131,6 +2058,7 @@ main.container:has(.admin-shell) {
   flex-direction: column;
   gap: 12px;
   height: 100%;
+  min-height: 220px;
   padding: var(--space-4);
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -2230,10 +2158,6 @@ main.container:has(.detail-band) {
 
 .detail-band .page-header {
   margin-bottom: 0;
-}
-
-.detail-layout {
-  margin-top: var(--space-6);
 }
 
 /* sidebar stays in view while the long content scrolls (desktop only) */
@@ -2413,32 +2337,12 @@ main.container:has(.detail-band) {
   border-bottom: none;
 }
 
-.programme-text {
-  max-width: 68ch;
-  line-height: 1.7;
-}
-
 /* ---------- Media: captions + gallery figures ---------- */
-
 .gallery-item {
   margin: 0;
 }
 
 /* ---------- Phase 7: admin ---------- */
-
-/* deep teal topbar */
-.admin-topbar {
-  background: var(--color-primary-dark);
-}
-
-/* active nav item: soft teal wash with a 3px primary left bar */
-.admin-nav a.active {
-  background: var(--color-surface-soft);
-  color: var(--color-primary-dark);
-  font-weight: 600;
-  border-radius: 0 6px 6px 0;
-  box-shadow: inset 3px 0 0 var(--color-primary);
-}
 
 /* tables: zebra rows, hover, sticky header, numeric columns, single border */
 .admin-table thead th {
@@ -2502,15 +2406,6 @@ main.container:has(.login-screen) {
   padding-bottom: 0;
 }
 
-.login-screen {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  padding: 3.5rem 1rem;
-  background: var(--hero-gradient);
-}
-
 /* translucent chevron motif behind the card */
 .login-screen::before {
   content: '';
@@ -2519,11 +2414,6 @@ main.container:has(.login-screen) {
   background: rgba(255, 255, 255, 0.08);
   clip-path: polygon(0 0, 40% 0, 100% 50%, 40% 100%, 0 100%, 60% 50%);
   pointer-events: none;
-}
-
-.login-card {
-  position: relative;
-  align-self: center;
 }
 
 .login-brand {
@@ -2554,6 +2444,87 @@ main.container:has(.login-screen) {
   margin: 0;
   font-size: 0.875rem;
   color: var(--color-muted);
+}
+
+/* ---------- Print ---------- */
+
+@media print {
+  .site-header,
+  .site-footer,
+  .skip-link,
+  .nav-toggle,
+  .divider-chevron,
+  .divider-slant,
+  .detail-side,
+  .detail-cta,
+  .stream-nav,
+  .course-nav,
+  .filter-bar,
+  .list-toolbar,
+  .pagination,
+  .chip-row,
+  .card-stretched::after,
+  .login-screen::before {
+    display: none !important;
+  }
+
+  body {
+    background: #fff;
+    color: #000;
+    overflow-x: visible;
+  }
+
+  main.container,
+  main.container:has(.detail-band),
+  main.container:has(.login-screen) {
+    max-width: none;
+    padding: 0;
+  }
+
+  .detail-band {
+    background: none;
+    border-bottom: 1px solid #000;
+    padding-top: 0;
+  }
+
+  .hero {
+    background: none !important;
+    color: #000;
+  }
+
+  .hero-subtitle {
+    color: #000;
+  }
+
+  .card-grid,
+  .detail-layout {
+    display: block;
+  }
+
+  .card-grid > li,
+  .prose table {
+    break-inside: avoid;
+  }
+
+  a {
+    color: #000;
+  }
+
+  /* show the destination for links that survive the print */
+  main a[href^='http']::after,
+  main a[href^='mailto']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    font-weight: 400;
+    word-break: break-all;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
 }
 
 /* ---------- Reduced motion ---------- */

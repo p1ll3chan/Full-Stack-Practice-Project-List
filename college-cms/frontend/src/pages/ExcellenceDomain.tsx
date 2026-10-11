@@ -42,6 +42,7 @@ export default function ExcellenceDomainPage() {
       )}
       {!itemsLoading && !itemsError && items.length > 0 && (
         <>
+          <h2 className="visually-hidden">Achievements</h2>
           <ResultsCount count={items.length} singular="achievement" plural="achievements" />
           <ul className="card-grid">
             {items.map((item) => (

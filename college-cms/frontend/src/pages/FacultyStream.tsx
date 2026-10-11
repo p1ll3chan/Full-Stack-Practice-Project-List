@@ -41,6 +41,7 @@ export default function FacultyStream() {
           )}
           {!membersLoading && !membersError && members.length > 0 && (
             <>
+              <h2 className="visually-hidden">Faculty members</h2>
               <ResultsCount count={members.length} singular="faculty member" plural="faculty members" />
               <ul className="card-grid">
                 {members.map((member) => (
