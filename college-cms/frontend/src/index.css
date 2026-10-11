@@ -37,25 +37,100 @@
   --space-7: 28px;
   --space-8: 32px;
 
+  /* typography */
+  --font-heading: "Montserrat Variable", system-ui, sans-serif;
+  --font-body: "Inter Variable", system-ui, sans-serif;
+  /* modular scale, ratio 1.25; each heading is 1.25x the one below at the max viewport */
+  --text-h3: clamp(1.25rem, 1.15rem + 0.4vw, 1.5625rem);
+  --text-h2: clamp(1.5625rem, 1.35rem + 0.9vw, 1.953rem);
+  --text-h1: clamp(1.953rem, 1.5rem + 2vw, 2.441rem);
+
   /* layout + motion */
   --container-public: 1040px;
   --container-admin: 1200px;
   --transition: 200ms ease;
 }
 
-:root {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
-  color: var(--color-ink);
-  background: var(--color-bg);
+/* ---------- Reset + base ---------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-* {
-  box-sizing: border-box;
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
   margin: 0;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-ink);
+  background: var(--color-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  max-width: 100%;
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--color-ink);
+  margin: 0 0 0.6em;
+}
+
+h1 {
+  font-size: var(--text-h1);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+h2 {
+  font-size: var(--text-h2);
+}
+
+h3 {
+  font-size: var(--text-h3);
+}
+
+/* small uppercase label above headings */
+.eyebrow {
+  display: block;
+  margin: 0 0 var(--space-2);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-primary-light);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .skip-link {
@@ -1154,5 +1229,18 @@ main.container:has(.admin-shell) {
   .admin-table {
     display: block;
     overflow-x: auto;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }
