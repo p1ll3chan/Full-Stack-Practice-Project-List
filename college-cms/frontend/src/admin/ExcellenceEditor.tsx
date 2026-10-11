@@ -6,7 +6,7 @@ import { adminKeys } from '../api/queryKeys'
 import type { ExcellenceDomain, ExcellenceItem } from '../api/types'
 import { ErrorState, Loading } from '../components/states'
 import { qs } from './api'
-import { FormField, SaveStatus } from './form'
+import { FormField, FormSaveBar } from './form'
 import { useForm } from './useForm'
 import { excellenceCreateSchema, excellenceUpdateSchema } from './schemas'
 
@@ -143,12 +143,11 @@ function ItemForm({ item, invalidate }: { item: ExcellenceItem | null; invalidat
             />
           </FormField>
         </div>
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Saving…' : createMode ? 'Create item' : 'Save changes'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </div>
   )

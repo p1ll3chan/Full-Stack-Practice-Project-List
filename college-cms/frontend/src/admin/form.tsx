@@ -60,6 +60,23 @@ export function SaveStatus({ status, message }: { status: FormStatus; message: s
   return null
 }
 
+export function FormSaveBar({
+  status,
+  message,
+  children,
+}: {
+  status: FormStatus
+  message: string | null
+  children: ReactNode
+}) {
+  return (
+    <div className="save-bar">
+      <SaveStatus status={status} message={message} />
+      <div className="save-bar-actions">{children}</div>
+    </div>
+  )
+}
+
 export function ConfirmButton({
   label,
   confirmLabel = 'Confirm',
@@ -67,6 +84,7 @@ export function ConfirmButton({
   onConfirm,
   disabled,
   danger = true,
+  size,
 }: {
   label: string
   confirmLabel?: string
@@ -74,13 +92,15 @@ export function ConfirmButton({
   onConfirm: () => void
   disabled?: boolean
   danger?: boolean
+  size?: 'sm'
 }) {
+  const sizeClass = size === 'sm' ? ' btn-sm' : ''
   const [armed, setArmed] = useState(false)
   if (!armed) {
     return (
       <button
         type="button"
-        className={danger ? 'btn-danger' : 'btn'}
+        className={`${danger ? 'btn-danger' : 'btn'}${sizeClass}`}
         disabled={disabled}
         onClick={() => setArmed(true)}
       >
@@ -90,10 +110,10 @@ export function ConfirmButton({
   }
   return (
     <span className="confirm-group">
-      <button type="button" className="btn-danger" disabled={disabled} onClick={onConfirm}>
+      <button type="button" className={`btn-danger${sizeClass}`} disabled={disabled} onClick={onConfirm}>
         {confirmLabel}
       </button>
-      <button type="button" className="btn" onClick={() => setArmed(false)}>
+      <button type="button" className={`btn${sizeClass}`} onClick={() => setArmed(false)}>
         {cancelLabel}
       </button>
     </span>

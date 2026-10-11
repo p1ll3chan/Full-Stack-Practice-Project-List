@@ -8,7 +8,7 @@ import type { AcademicDetails, DegreeLevel, FacultyDetailsResponse, StreamWithLe
 import { ErrorState, Loading } from '../components/states'
 import { qs } from './api'
 import MediaPicker from './MediaPicker'
-import { FormField, SaveStatus } from './form'
+import { FormField, FormSaveBar } from './form'
 import { useForm } from './useForm'
 import { hasNonParagraphNodes, richDocToText, textToRichDoc } from './rich'
 import { streamCreateSchema, streamUpdateSchema } from './schemas'
@@ -124,12 +124,11 @@ function CreateDepartmentForm({ invalidate }: { invalidate: () => void }) {
           />
           Active
         </label>
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Creating…' : 'Create department'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </section>
   )
@@ -207,12 +206,11 @@ function DetailsCard({ stream, invalidate }: { stream: StreamWithLevels; invalid
           />
           Active
         </label>
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Saving…' : 'Save details'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </div>
   )
@@ -281,8 +279,10 @@ function DegreeLevelsCard({
           ))}
         </ul>
       )}
-      <SaveStatus status={save.isPending ? 'saving' : error ? 'error' : message ? 'saved' : 'idle'} message={error ?? message} />
-      <div className="editor-actions">
+      <FormSaveBar
+        status={save.isPending ? 'saving' : error ? 'error' : message ? 'saved' : 'idle'}
+        message={error ?? message}
+      >
         <button
           type="button"
           className="btn-primary"
@@ -291,7 +291,7 @@ function DegreeLevelsCard({
         >
           {save.isPending ? 'Saving…' : 'Save degree levels'}
         </button>
-      </div>
+      </FormSaveBar>
     </div>
   )
 }
@@ -384,12 +384,11 @@ function AcademicDetailsForm({
             onChange={(event) => form.setField('programsHtml', event.target.value)}
           />
         </FormField>
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Saving…' : 'Save academic details'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </div>
   )
@@ -463,12 +462,11 @@ function FacultyIntroForm({
             onChange={(event) => form.setField('introText', event.target.value)}
           />
         </FormField>
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Saving…' : 'Save intro'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </div>
   )

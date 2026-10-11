@@ -100,40 +100,47 @@ export default function ExcellenceManager() {
       {rows.length === 0 ? (
         <EmptyState message="No excellence items match these filters." hint="Create the first item." />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Category</th>
-              <th>Year</th>
-              <th>Domain</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <Link to={`/admin/excellence/${row.id}`}>{row.title}</Link>
-                </td>
-                <td>{row.category || '—'}</td>
-                <td>{row.year}</td>
-                <td>{row.domainId ? (domainNames.get(row.domainId) ?? `#${row.domainId}`) : '—'}</td>
-                <td className="table-actions">
-                  <button type="button" className="btn" onClick={() => navigate(`/admin/excellence/${row.id}`)}>
-                    Edit
-                  </button>
-                  <ConfirmButton
-                    label="Delete"
-                    confirmLabel="Confirm delete"
-                    disabled={remove.isPending}
-                    onConfirm={() => remove.mutate(row.id)}
-                  />
-                </td>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th className="num">Year</th>
+                <th>Domain</th>
+                <th aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <Link to={`/admin/excellence/${row.id}`}>{row.title}</Link>
+                  </td>
+                  <td>{row.category || '—'}</td>
+                  <td className="num">{row.year}</td>
+                  <td>{row.domainId ? (domainNames.get(row.domainId) ?? `#${row.domainId}`) : '—'}</td>
+                  <td className="table-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => navigate(`/admin/excellence/${row.id}`)}
+                    >
+                      Edit
+                    </button>
+                    <ConfirmButton
+                      label="Delete"
+                      confirmLabel="Confirm delete"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onConfirm={() => remove.mutate(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {remove.isError && (

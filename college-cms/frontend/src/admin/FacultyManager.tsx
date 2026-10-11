@@ -95,44 +95,51 @@ export default function FacultyManager() {
       {rows.length === 0 ? (
         <EmptyState message="No faculty match these filters." hint="Clear the filters or add a faculty member." />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Title</th>
-              <th>Department</th>
-              <th>Email</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <Link to={`/admin/faculty/${row.id}`}>{row.name}</Link>
-                </td>
-                <td>{row.title || '—'}</td>
-                <td>
-                  {row.streamId
-                    ? (streamNames.get(row.streamId) ?? `#${row.streamId}`)
-                    : row.department || '—'}
-                </td>
-                <td>{row.email || '—'}</td>
-                <td className="table-actions">
-                  <button type="button" className="btn" onClick={() => navigate(`/admin/faculty/${row.id}`)}>
-                    Edit
-                  </button>
-                  <ConfirmButton
-                    label="Delete"
-                    confirmLabel="Confirm delete"
-                    disabled={remove.isPending}
-                    onConfirm={() => remove.mutate(row.id)}
-                  />
-                </td>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Title</th>
+                <th>Department</th>
+                <th>Email</th>
+                <th aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <Link to={`/admin/faculty/${row.id}`}>{row.name}</Link>
+                  </td>
+                  <td>{row.title || '—'}</td>
+                  <td>
+                    {row.streamId
+                      ? (streamNames.get(row.streamId) ?? `#${row.streamId}`)
+                      : row.department || '—'}
+                  </td>
+                  <td>{row.email || '—'}</td>
+                  <td className="table-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => navigate(`/admin/faculty/${row.id}`)}
+                    >
+                      Edit
+                    </button>
+                    <ConfirmButton
+                      label="Delete"
+                      confirmLabel="Confirm delete"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onConfirm={() => remove.mutate(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {remove.isError && (

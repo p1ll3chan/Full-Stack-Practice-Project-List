@@ -7,7 +7,7 @@ import { adminKeys } from '../api/queryKeys'
 import type { ExcellenceDomain } from '../api/types'
 import { EmptyState, ErrorState, Loading } from '../components/states'
 import { qs, useDebounced } from './api'
-import { ConfirmButton, FormField, SaveStatus } from './form'
+import { ConfirmButton, FormField, FormSaveBar } from './form'
 import { useForm } from './useForm'
 import { excellenceDomainCreateSchema, excellenceDomainUpdateSchema } from './schemas'
 
@@ -70,58 +70,61 @@ export function ExcellenceDomainsManager() {
       {rows.length === 0 ? (
         <EmptyState message="No domains yet." hint="Domains group excellence items on the public site." />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Slug</th>
-              <th>Color</th>
-              <th>Status</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <Link to={`/admin/excellence/domains/${row.id}`}>{row.name}</Link>
-                </td>
-                <td>
-                  <code>{row.slug}</code>
-                </td>
-                <td>{row.color || '—'}</td>
-                <td>
-                  <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
-                    {row.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="table-actions">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => navigate(`/admin/excellence/domains/${row.id}`)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={setActiveMutation.isPending}
-                    onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
-                  >
-                    {row.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <ConfirmButton
-                    label="Delete"
-                    confirmLabel="Confirm delete"
-                    disabled={remove.isPending}
-                    onConfirm={() => remove.mutate(row.id)}
-                  />
-                </td>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Color</th>
+                <th>Status</th>
+                <th aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <Link to={`/admin/excellence/domains/${row.id}`}>{row.name}</Link>
+                  </td>
+                  <td>
+                    <code>{row.slug}</code>
+                  </td>
+                  <td>{row.color || '—'}</td>
+                  <td>
+                    <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
+                      {row.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="table-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => navigate(`/admin/excellence/domains/${row.id}`)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      disabled={setActiveMutation.isPending}
+                      onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
+                    >
+                      {row.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <ConfirmButton
+                      label="Delete"
+                      confirmLabel="Confirm delete"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onConfirm={() => remove.mutate(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {remove.isError && (
@@ -252,12 +255,11 @@ function DomainForm({ domain, invalidate }: { domain: ExcellenceDomain | null; i
           />
           Active
         </label>
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Saving…' : createMode ? 'Create domain' : 'Save changes'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </div>
   )

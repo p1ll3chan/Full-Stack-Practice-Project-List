@@ -9,7 +9,7 @@ import PageBlocks from '../components/PageBlocks'
 import { ErrorState, Loading } from '../components/states'
 import BlockForm from './BlockForm'
 import { blockToInput, blockTypeLabels } from './blockUtils'
-import { ConfirmButton, FormField, SaveStatus } from './form'
+import { ConfirmButton, FormField, FormSaveBar } from './form'
 import { useForm } from './useForm'
 import { pageCreateSchema, pageUpdateSchema } from './schemas'
 
@@ -137,12 +137,11 @@ function CreatePageForm() {
           />
           Publish immediately
         </label>
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Creating…' : 'Create page'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </section>
   )
@@ -218,8 +217,7 @@ function PageEditView({
               ))}
             </select>
           </FormField>
-          <SaveStatus status={metaForm.status} message={metaForm.message} />
-          <div className="editor-actions">
+          <FormSaveBar status={metaForm.status} message={metaForm.message}>
             <button type="submit" className="btn-primary" disabled={metaForm.saving}>
               {metaForm.saving ? 'Saving…' : 'Save details'}
             </button>
@@ -232,7 +230,7 @@ function PageEditView({
             >
               {page.published ? 'Unpublish' : 'Publish'}
             </button>
-          </div>
+          </FormSaveBar>
           {publish.isError && (
             <p className="field-error" role="alert">
               {publish.error instanceof Error ? publish.error.message : 'Publish failed.'}

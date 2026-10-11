@@ -92,54 +92,61 @@ export default function DepartmentsManager() {
       {rows.length === 0 ? (
         <EmptyState message="No departments match these filters." hint="Clear the filters or create a department." />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Slug</th>
-              <th>Category</th>
-              <th>Status</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <Link to={`/admin/departments/${row.id}`}>{row.name}</Link>
-                </td>
-                <td>
-                  <code>/{row.slug}</code>
-                </td>
-                <td>{row.category || '—'}</td>
-                <td>
-                  <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
-                    {row.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="table-actions">
-                  <button type="button" className="btn" onClick={() => navigate(`/admin/departments/${row.id}`)}>
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={setActiveMutation.isPending}
-                    onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
-                  >
-                    {row.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <ConfirmButton
-                    label="Delete"
-                    confirmLabel="Confirm delete"
-                    disabled={remove.isPending}
-                    onConfirm={() => remove.mutate(row.id)}
-                  />
-                </td>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Slug</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <Link to={`/admin/departments/${row.id}`}>{row.name}</Link>
+                  </td>
+                  <td>
+                    <code>/{row.slug}</code>
+                  </td>
+                  <td>{row.category || '—'}</td>
+                  <td>
+                    <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
+                      {row.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="table-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => navigate(`/admin/departments/${row.id}`)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      disabled={setActiveMutation.isPending}
+                      onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
+                    >
+                      {row.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <ConfirmButton
+                      label="Delete"
+                      confirmLabel="Confirm delete"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onConfirm={() => remove.mutate(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {remove.isError && (

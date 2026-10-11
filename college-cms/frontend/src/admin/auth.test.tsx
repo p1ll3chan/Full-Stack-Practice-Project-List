@@ -60,9 +60,11 @@ describe('admin access control', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
 
     await screen.findByText('admin dashboard')
-    const firstCall = fetchSpy.mock.calls[0]
-    if (!firstCall) throw new Error('fetch was never called')
-    const init = firstCall[1] as RequestInit
+    const loginCall = fetchSpy.mock.calls.find(
+      ([, init]) => (init?.headers as Record<string, string> | undefined)?.Authorization !== undefined,
+    )
+    if (!loginCall) throw new Error('login request was never called')
+    const init = loginCall[1] as RequestInit
     expect(init).toBeTruthy()
     expect((init.headers as Record<string, string>).Authorization).toBe('Bearer sekrit')
   })

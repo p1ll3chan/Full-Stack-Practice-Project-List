@@ -1,12 +1,14 @@
 import { useState, type FormEvent } from 'react'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { useContact } from '../api/hooks'
 import { usePageTitle } from '../hooks/usePageTitle'
 import { useAuth } from './session'
 
 export default function LoginPage() {
   usePageTitle('Sign in')
   const { session, login } = useAuth()
+  const { data: contact } = useContact()
   const navigate = useNavigate()
   const location = useLocation()
   const [token, setToken] = useState('')
@@ -40,8 +42,15 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="login-screen">
+    <div className="login-screen bleed">
       <form className="login-card" onSubmit={onSubmit}>
+        <div className="login-brand">
+          <svg className="login-brand-mark" viewBox="0 0 48 12" aria-hidden="true" focusable="false">
+            <polygon points="0,12 12,0 24,12 36,0 48,12" fill="currentColor" />
+          </svg>
+          <p className="login-brand-name">{contact?.collegeName || 'College CMS'}</p>
+          {contact?.tagline && <p className="login-brand-tagline">{contact.tagline}</p>}
+        </div>
         <h1>CMS sign in</h1>
         <p className="login-hint">
           Paste the bearer token configured as <code>ADMIN_TOKEN</code> or <code>EDITOR_TOKEN</code> in{' '}

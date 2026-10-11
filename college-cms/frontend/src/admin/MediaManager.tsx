@@ -7,7 +7,7 @@ import MediaImage from '../components/MediaImage'
 import { EmptyState, ErrorState, Loading } from '../components/states'
 import Pagination from '../components/Pagination'
 import { qs, useDebounced } from './api'
-import { ConfirmButton, FormField, SaveStatus } from './form'
+import { ConfirmButton, FormField, FormSaveBar } from './form'
 import { mediaCreateSchema, mediaUpdateSchema } from './schemas'
 
 const statuses = ['referenced', 'ready', 'missing'] as const
@@ -95,16 +95,17 @@ export default function MediaManager() {
           hint="Add an image URL above — file uploads are not configured, so images are referenced by URL."
         />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Image</th>
-              <th>URL</th>
-              <th>Alt text</th>
-              <th>Status</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>URL</th>
+                <th>Alt text</th>
+                <th>Status</th>
+                <th aria-label="Actions" />
+              </tr>
+            </thead>
           <tbody>
             {rows.map((row) => (
               <tr key={row.id}>
@@ -125,7 +126,7 @@ export default function MediaManager() {
                 <td className="table-actions">
                   <button
                     type="button"
-                    className="btn"
+                    className="btn btn-sm"
                     onClick={() => setEditingId(editingId === row.id ? null : row.id)}
                   >
                     {editingId === row.id ? 'Close' : 'Edit'}
@@ -133,6 +134,7 @@ export default function MediaManager() {
                   <ConfirmButton
                     label="Delete"
                     confirmLabel="Confirm delete"
+                    size="sm"
                     disabled={remove.isPending}
                     onConfirm={() => remove.mutate(row.id)}
                   />
@@ -155,7 +157,8 @@ export default function MediaManager() {
               ) : null,
             )}
           </tbody>
-        </table>
+          </table>
+        </div>
       )}
 
       {remove.isError && (
@@ -251,15 +254,14 @@ function CreateMediaForm({ onCreated }: { onCreated: () => void }) {
           <input value={altText} onChange={(event) => setAltText(event.target.value)} />
         </FormField>
       </div>
-      <SaveStatus status={status} message={saveError ?? message} />
-      <div className="editor-actions">
+      <FormSaveBar status={status} message={saveError ?? message}>
         <button type="button" className="btn-primary" disabled={create.isPending} onClick={submit}>
           {create.isPending ? 'Adding…' : 'Add media'}
         </button>
         <button type="button" className="btn" onClick={() => setOpen(false)}>
           Close
         </button>
-      </div>
+      </FormSaveBar>
     </div>
   )
 }
@@ -340,15 +342,14 @@ function EditMediaForm({ media, onSaved }: { media: Media; onSaved: () => void }
       <FormField label="Alt text" error={errors.altText}>
         <input value={altText} onChange={(event) => setAltText(event.target.value)} />
       </FormField>
-      <SaveStatus status={saveStatus} message={message} />
-      <div className="editor-actions">
+      <FormSaveBar status={saveStatus} message={message}>
         <button type="button" className="btn-primary" disabled={update.isPending} onClick={submit}>
           {update.isPending ? 'Saving…' : 'Save media'}
         </button>
         <button type="button" className="btn" onClick={onSaved}>
           Cancel
         </button>
-      </div>
+      </FormSaveBar>
     </div>
   )
 }

@@ -113,58 +113,61 @@ export default function DegreeLevelsManager() {
       {rows.length === 0 ? (
         <EmptyState message="No degree levels match these filters." hint="Create the first degree level." />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Name</th>
-              <th>Group</th>
-              <th>Status</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <code>{row.code}</code>
-                </td>
-                <td>
-                  <Link to={`/admin/academics/degree-levels/${row.id}`}>{row.name}</Link>
-                </td>
-                <td>{row.levelGroup}</td>
-                <td>
-                  <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
-                    {row.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="table-actions">
-                  <button
-                    type="button"
-                    className="btn"
-                    onClick={() => navigate(`/admin/academics/degree-levels/${row.id}`)}
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={setActiveMutation.isPending}
-                    onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
-                  >
-                    {row.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <ConfirmButton
-                    label="Delete"
-                    confirmLabel="Confirm delete"
-                    disabled={remove.isPending}
-                    onConfirm={() => remove.mutate(row.id)}
-                  />
-                </td>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Name</th>
+                <th>Group</th>
+                <th>Status</th>
+                <th aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <code>{row.code}</code>
+                  </td>
+                  <td>
+                    <Link to={`/admin/academics/degree-levels/${row.id}`}>{row.name}</Link>
+                  </td>
+                  <td>{row.levelGroup}</td>
+                  <td>
+                    <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
+                      {row.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="table-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => navigate(`/admin/academics/degree-levels/${row.id}`)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      disabled={setActiveMutation.isPending}
+                      onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
+                    >
+                      {row.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <ConfirmButton
+                      label="Delete"
+                      confirmLabel="Confirm delete"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onConfirm={() => remove.mutate(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {remove.isError && (

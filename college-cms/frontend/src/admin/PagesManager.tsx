@@ -91,48 +91,55 @@ export default function PagesManager() {
           hint="Clear the filters or create your first page."
         />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Slug</th>
-              <th>Section</th>
-              <th>Status</th>
-              <th>Updated</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <Link to={`/admin/pages/${row.id}`}>{row.title}</Link>
-                </td>
-                <td>
-                  <code>/{row.slug}</code>
-                </td>
-                <td>{row.section}</td>
-                <td>
-                  <span className={`badge ${row.published ? 'badge-live' : 'badge-draft'}`}>
-                    {row.published ? 'Published' : 'Draft'}
-                  </span>
-                </td>
-                <td>{new Date(row.updatedAt).toLocaleDateString()}</td>
-                <td className="table-actions">
-                  <button type="button" className="btn" onClick={() => navigate(`/admin/pages/${row.id}`)}>
-                    Edit
-                  </button>
-                  <ConfirmButton
-                    label="Delete"
-                    confirmLabel="Confirm delete"
-                    disabled={remove.isPending}
-                    onConfirm={() => remove.mutate(row.id)}
-                  />
-                </td>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Slug</th>
+                <th>Section</th>
+                <th>Status</th>
+                <th>Updated</th>
+                <th aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <Link to={`/admin/pages/${row.id}`}>{row.title}</Link>
+                  </td>
+                  <td>
+                    <code>/{row.slug}</code>
+                  </td>
+                  <td>{row.section}</td>
+                  <td>
+                    <span className={`badge ${row.published ? 'badge-live' : 'badge-draft'}`}>
+                      {row.published ? 'Published' : 'Draft'}
+                    </span>
+                  </td>
+                  <td>{new Date(row.updatedAt).toLocaleDateString()}</td>
+                  <td className="table-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => navigate(`/admin/pages/${row.id}`)}
+                    >
+                      Edit
+                    </button>
+                    <ConfirmButton
+                      label="Delete"
+                      confirmLabel="Confirm delete"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onConfirm={() => remove.mutate(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {remove.isError && (

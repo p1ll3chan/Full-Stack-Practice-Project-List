@@ -117,56 +117,63 @@ export default function CoursesManager() {
       {rows.length === 0 ? (
         <EmptyState message="No courses match these filters." hint="Clear the filters or create a course." />
       ) : (
-        <table className="admin-table">
-          <thead>
-            <tr>
-              <th>Code</th>
-              <th>Title</th>
-              <th>Credits</th>
-              <th>Department</th>
-              <th>Status</th>
-              <th aria-label="Actions" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <code>{row.code ?? '—'}</code>
-                </td>
-                <td>
-                  <Link to={`/admin/courses/${row.id}`}>{row.title}</Link>
-                </td>
-                <td>{row.credits ?? '—'}</td>
-                <td>{row.streamId ? (streamNames.get(row.streamId) ?? `#${row.streamId}`) : '—'}</td>
-                <td>
-                  <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
-                    {row.isActive ? 'Active' : 'Inactive'}
-                  </span>
-                </td>
-                <td className="table-actions">
-                  <button type="button" className="btn" onClick={() => navigate(`/admin/courses/${row.id}`)}>
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    className="btn"
-                    disabled={setActiveMutation.isPending}
-                    onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
-                  >
-                    {row.isActive ? 'Deactivate' : 'Activate'}
-                  </button>
-                  <ConfirmButton
-                    label="Delete"
-                    confirmLabel="Confirm delete"
-                    disabled={remove.isPending}
-                    onConfirm={() => remove.mutate(row.id)}
-                  />
-                </td>
+        <div className="table-scroll">
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th>Code</th>
+                <th>Title</th>
+                <th className="num">Credits</th>
+                <th>Department</th>
+                <th>Status</th>
+                <th aria-label="Actions" />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.id}>
+                  <td>
+                    <code>{row.code ?? '—'}</code>
+                  </td>
+                  <td>
+                    <Link to={`/admin/courses/${row.id}`}>{row.title}</Link>
+                  </td>
+                  <td className="num">{row.credits ?? '—'}</td>
+                  <td>{row.streamId ? (streamNames.get(row.streamId) ?? `#${row.streamId}`) : '—'}</td>
+                  <td>
+                    <span className={`badge ${row.isActive ? 'badge-live' : 'badge-draft'}`}>
+                      {row.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="table-actions">
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      onClick={() => navigate(`/admin/courses/${row.id}`)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-sm"
+                      disabled={setActiveMutation.isPending}
+                      onClick={() => setActiveMutation.mutate({ id: row.id, next: !row.isActive })}
+                    >
+                      {row.isActive ? 'Deactivate' : 'Activate'}
+                    </button>
+                    <ConfirmButton
+                      label="Delete"
+                      confirmLabel="Confirm delete"
+                      size="sm"
+                      disabled={remove.isPending}
+                      onConfirm={() => remove.mutate(row.id)}
+                    />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       {remove.isError && (

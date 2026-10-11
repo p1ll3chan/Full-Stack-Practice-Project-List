@@ -7,7 +7,7 @@ import type { FacultyMember, Stream } from '../api/types'
 import { ErrorState, Loading } from '../components/states'
 import { qs } from './api'
 import MediaPicker from './MediaPicker'
-import { FormField, SaveStatus } from './form'
+import { FormField, FormSaveBar } from './form'
 import { useForm } from './useForm'
 import { facultyCreateSchema, facultyUpdateSchema } from './schemas'
 
@@ -141,12 +141,11 @@ function FacultyForm({ member, invalidate }: { member: FacultyMember | null; inv
           onChange={(photoId) => form.setField('photoMediaId', photoId)}
           label="Photo"
         />
-        <SaveStatus status={form.status} message={form.message} />
-        <div className="editor-actions">
+        <FormSaveBar status={form.status} message={form.message}>
           <button type="submit" className="btn-primary" disabled={form.saving}>
             {form.saving ? 'Saving…' : createMode ? 'Create faculty member' : 'Save changes'}
           </button>
-        </div>
+        </FormSaveBar>
       </form>
     </div>
   )
