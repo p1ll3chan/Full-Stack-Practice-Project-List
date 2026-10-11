@@ -878,7 +878,7 @@ select:focus {
   display: block;
   width: 100%;
   height: auto;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
   background: var(--color-surface-soft);
 }
 
@@ -891,6 +891,7 @@ select:focus {
   min-height: 140px;
   color: var(--color-muted);
   border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
   background: var(--color-surface-soft);
 }
 
@@ -914,13 +915,9 @@ select:focus {
 .gallery-item figcaption {
   color: var(--color-muted);
   font-size: 0.85rem;
+  line-height: 1.5;
+  text-align: left;
   margin-top: 0.35rem;
-}
-
-.gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.75rem;
 }
 
 .gallery-block {
@@ -2210,6 +2207,221 @@ main.container:has(.admin-shell) {
 
 .pagination .btn .icon {
   flex: none;
+}
+
+/* ---------- Detail pages ---------- */
+
+/* header band: full-width tinted strip with the title and breadcrumb */
+main.container:has(.detail-band) {
+  padding-top: 0;
+}
+
+.detail-band {
+  padding: 2rem 0 1.75rem;
+  background: var(--color-surface-soft);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.detail-band-inner {
+  max-width: var(--container-public);
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.detail-band .page-header {
+  margin-bottom: 0;
+}
+
+.detail-layout {
+  margin-top: var(--space-6);
+}
+
+/* sidebar stays in view while the long content scrolls (desktop only) */
+@media (min-width: 721px) {
+  .detail-side {
+    position: sticky;
+    top: var(--header-offset, 72px);
+    align-self: start;
+    max-height: calc(100vh - var(--header-offset, 72px) - 24px);
+    overflow-y: auto;
+    padding-bottom: 4px;
+  }
+}
+
+.detail-cta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: var(--space-4) 0;
+}
+
+.detail-cta .btn,
+.detail-cta .btn-primary {
+  width: 100%;
+}
+
+.fact-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.fact-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.fact-item dt {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-muted);
+}
+
+.fact-item dd {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--color-ink);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Long-form content (.prose) ---------- */
+
+.prose {
+  max-width: 68ch;
+  line-height: 1.7;
+  color: var(--color-ink);
+}
+
+.prose > * {
+  margin: 0;
+}
+
+.prose > * + * {
+  margin-top: 1em;
+}
+
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  margin: 1.6em 0 0.5em;
+}
+
+.prose > h2:first-child,
+.prose > h3:first-child,
+.prose > h4:first-child {
+  margin-top: 0;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0;
+  padding-left: 1.4em;
+}
+
+.prose ul {
+  list-style: disc;
+}
+
+.prose ol {
+  list-style: decimal;
+}
+
+.prose ul ul {
+  list-style: circle;
+}
+
+.prose li + li {
+  margin-top: 0.4em;
+}
+
+.prose li::marker {
+  color: var(--color-primary);
+}
+
+.prose strong {
+  font-weight: 700;
+}
+
+.prose a {
+  color: var(--color-primary);
+  text-decoration-line: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.prose a:hover {
+  text-decoration-thickness: 2px;
+}
+
+.prose blockquote {
+  margin: 1.5em 0;
+  padding: 0.75em 1.25em;
+  border-left: 4px solid var(--color-primary);
+  background: var(--color-surface-soft);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  color: var(--color-ink);
+}
+
+.prose blockquote > * + * {
+  margin-top: 0.6em;
+}
+
+/* tables: wrap in .table-scroll so wide tables scroll sideways instead of breaking the layout */
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.prose table {
+  width: 100%;
+  min-width: 480px;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+.prose th,
+.prose td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.prose th {
+  background: var(--color-surface-soft);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.prose tbody tr:nth-child(even) {
+  background: var(--color-bg);
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.programme-text {
+  max-width: 68ch;
+  line-height: 1.7;
+}
+
+/* ---------- Media: captions + gallery figures ---------- */
+
+.gallery-item {
+  margin: 0;
 }
 
 /* ---------- Reduced motion ---------- */

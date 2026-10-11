@@ -1,6 +1,7 @@
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAcademicDetails } from '../api/hooks'
 import CourseNav from '../components/CourseNav'
+import DetailFacts from '../components/DetailFacts'
 import PageHeader from '../components/PageHeader'
 import RichText from '../components/RichText'
 import StreamNav from '../components/StreamNav'
@@ -19,7 +20,20 @@ export default function AcademicDetail() {
 
   return (
     <section>
-      <PageHeader title={stream.name} subtitle={stream.tagline} eyebrow={stream.category || undefined} />
+      <div className="detail-band bleed">
+        <div className="detail-band-inner">
+          <PageHeader
+            title={stream.name}
+            subtitle={stream.tagline}
+            eyebrow={stream.category || undefined}
+            breadcrumbs={[
+              { label: 'Home', to: '/' },
+              { label: 'Academics', to: '/academics' },
+              { label: stream.name },
+            ]}
+          />
+        </div>
+      </div>
       <StreamNav base="/academics/streams" activeSlug={stream.slug} />
 
       <div className="detail-layout">
@@ -36,7 +50,13 @@ export default function AcademicDetail() {
             </section>
           )}
         </div>
-        <aside className="detail-side">
+        <aside className="detail-side" aria-label="Department summary">
+          <DetailFacts facts={[{ label: 'Category', value: stream.category }]} />
+          <div className="detail-cta">
+            <Link className="btn-primary btn" to={`/departments/${stream.slug}`}>
+              Department page
+            </Link>
+          </div>
           <CourseNav streamSlug={stream.slug} />
         </aside>
       </div>

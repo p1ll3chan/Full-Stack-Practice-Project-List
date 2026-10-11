@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import type { RichDoc, RichNode, RichTextRun } from '../api/types'
+import { guardedTextColor } from './richTextColor'
 
 function safeHref(href: string): string | null {
   const value = href.trim()
@@ -7,14 +8,6 @@ function safeHref(href: string): string | null {
   if (/^(mailto|tel):/i.test(value)) return value
   if (value.startsWith('/')) return value
   return null
-}
-
-function safeColor(value: string | undefined): string | undefined {
-  if (!value) return undefined
-  const v = value.trim()
-  if (/^#[0-9a-fA-F]{3,8}$/.test(v)) return v
-  if (/^[a-zA-Z]{3,20}$/.test(v)) return v
-  return undefined
 }
 
 function alignStyle(align: string): CSSProperties {
@@ -37,7 +30,7 @@ function Run({ run }: { run: RichTextRun }) {
       </a>
     )
   }
-  const color = safeColor(run.foreground)
+  const color = guardedTextColor(run.foreground)
   if (color) {
     return <span style={{ color }}>{node}</span>
   }
@@ -86,7 +79,7 @@ function Node({ node }: { node: RichNode }) {
 export default function RichText({ doc, className }: { doc: RichDoc | null | undefined; className?: string }) {
   if (!doc || doc.nodes.length === 0) return null
   return (
-    <div className={['rich-text', className].filter(Boolean).join(' ')}>
+    <div className={['rich-text', 'prose', className].filter(Boolean).join(' ')}>
       {doc.nodes.map((node, index) => (
         <Node key={index} node={node} />
       ))}

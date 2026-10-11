@@ -32,7 +32,9 @@ export default function CmsSection({ slug, children, hero, parents, eyebrow }: C
           breadcrumbs={parents ? [...parents, { label: page.title }] : undefined}
         />
       )}
-      <PageBlocks blocks={page.blocks} />
+      <div className="prose">
+        <PageBlocks blocks={page.blocks} />
+      </div>
       {children}
     </section>
   )

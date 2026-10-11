@@ -14,7 +14,9 @@ export default function DynamicPage() {
   return (
     <section>
       <PageHeader title={page.title} />
-      <PageBlocks blocks={page.blocks} />
+      <div className="prose">
+        <PageBlocks blocks={page.blocks} />
+      </div>
     </section>
   )
 }

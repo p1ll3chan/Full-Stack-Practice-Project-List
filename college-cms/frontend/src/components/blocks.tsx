@@ -52,14 +52,16 @@ export function GalleryBlock({
   if (!items || items.length === 0) return null
   return (
     <figure className="gallery-block">
-      <div className="gallery-grid">
+      <ul className="card-grid">
         {items.map((item) => (
-          <div key={item.id} className="gallery-item">
-            <MediaImage media={null} alt={item.caption} />
-            {item.caption && <figcaption>{item.caption}</figcaption>}
-          </div>
+          <li key={item.id}>
+            <figure className="gallery-item">
+              <MediaImage media={null} alt={item.caption} />
+              {item.caption && <figcaption>{item.caption}</figcaption>}
+            </figure>
+          </li>
         ))}
-      </div>
+      </ul>
       {content.caption && <figcaption>{content.caption}</figcaption>}
     </figure>
   )

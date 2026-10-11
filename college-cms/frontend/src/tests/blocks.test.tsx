@@ -35,7 +35,8 @@ describe('block registry', () => {
 
     expect(screen.getByRole('heading', { level: 2, name: 'Welcome to the college' })).toBeTruthy()
     expect(screen.getByText('First paragraph from the database.')).toBeTruthy()
-    expect(screen.getByRole('list')).toBeTruthy()
+    // one list for the text block and one for the gallery grid (gallery is now a <ul>)
+    expect(screen.getAllByRole('list')).toHaveLength(2)
     expect(screen.getByText('Arts')).toBeTruthy()
     expect(screen.getByRole('img', { name: 'Campus photo' })).toBeTruthy()
     expect(screen.getByText('The main building')).toBeTruthy()

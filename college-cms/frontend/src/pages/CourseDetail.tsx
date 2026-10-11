@@ -1,5 +1,6 @@
 import { Link, useParams } from 'react-router-dom'
 import { useAllStreams, useCourseById } from '../api/hooks'
+import DetailFacts from '../components/DetailFacts'
 import PageHeader from '../components/PageHeader'
 import { ErrorState, Loading, NotFoundPage } from '../components/states'
 
@@ -17,29 +18,50 @@ export default function CourseDetail() {
 
   return (
     <section>
-      <PageHeader
-        title={course.title}
-        eyebrow={course.code ?? undefined}
-        subtitle={course.department || undefined}
-      />
-      <p className="course-meta">
-        {course.credits != null && <span>{course.credits} credits</span>}
-        {stream && (
-          <span>
-            <Link to={`/departments/${stream.slug}`}>{stream.name}</Link>
-          </span>
-        )}
-      </p>
-      {course.description && <p>{course.description}</p>}
-      <div className="quick-links">
-        <Link className="btn" to="/academics">
-          All academics
-        </Link>
-        {stream && (
-          <Link className="btn" to={`/academics/streams/${stream.slug}`}>
-            Department details
-          </Link>
-        )}
+      <div className="detail-band bleed">
+        <div className="detail-band-inner">
+          <PageHeader
+            title={course.title}
+            eyebrow={course.code ?? undefined}
+            subtitle={course.department || undefined}
+            breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'Academics', to: '/academics' }, { label: course.title }]}
+          />
+        </div>
+      </div>
+
+      <div className="detail-layout">
+        <div className="detail-main">
+          {course.description ? (
+            <div className="prose">
+              <p>{course.description}</p>
+            </div>
+          ) : (
+            <p className="empty-hint">No description has been published for this course yet.</p>
+          )}
+        </div>
+
+        <aside className="detail-side" aria-label="Course summary">
+          <DetailFacts
+            facts={[
+              { label: 'Course code', value: course.code },
+              { label: 'Credits', value: course.credits != null ? `${course.credits} credits` : null },
+              {
+                label: 'Department',
+                value: stream ? <Link to={`/departments/${stream.slug}`}>{stream.name}</Link> : course.department,
+              },
+            ]}
+          />
+          <div className="detail-cta">
+            {stream && (
+              <Link className="btn-primary btn" to={`/academics/streams/${stream.slug}`}>
+                Department details
+              </Link>
+            )}
+            <Link className="btn" to="/academics">
+              All academics
+            </Link>
+          </div>
+        </aside>
       </div>
     </section>
   )
