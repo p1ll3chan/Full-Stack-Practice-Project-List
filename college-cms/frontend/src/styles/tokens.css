@@ -1,0 +1,61 @@
+/* src/styles/tokens.css — see docs/DESIGN.md. Imported by src/index.css; do not import directly. */
+/* ---------- Design tokens ---------- */
+
+:root {
+  /* colour */
+  --color-primary: #0e6e5f;
+  --color-primary-dark: #0a5247;
+  --color-primary-light: #17907a;
+  --color-accent: #2bae9a;
+  --color-ink: #1b2b28;
+  --color-muted: #5b6b68;
+  --color-surface: #ffffff;
+  --color-surface-soft: #eef6f4;
+  --color-bg: #f7faf9;
+  --color-border: #d5e6e2;
+  --color-border-strong: #b9d3cd;
+  /* input boundaries need 3:1 against white/surface-soft (WCAG 1.4.11); border-strong is decorative only */
+  --color-border-input: #7a918b;
+  --color-danger: #b3262e;
+  --color-danger-bg: #fdecee;
+  --color-success: #166534;
+  --color-success-bg: #dcfce7;
+  --color-warning: #854d0e;
+  --color-warning-bg: #fef9c3;
+
+  /* radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+
+  /* elevation */
+  --shadow-card: 0 4px 16px rgba(14, 110, 95, 0.08);
+  --shadow-hover: 0 8px 24px rgba(14, 110, 95, 0.14);
+
+  /* spacing (4px scale) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 28px;
+  --space-8: 32px;
+
+  /* typography */
+  --font-heading: "Montserrat Variable", system-ui, sans-serif;
+  --font-body: "Inter Variable", system-ui, sans-serif;
+  /* modular scale, ratio 1.25; each heading is 1.25x the one below at the max viewport */
+  --text-h3: clamp(1.25rem, 1.15rem + 0.4vw, 1.5625rem);
+  --text-h2: clamp(1.5625rem, 1.35rem + 0.9vw, 1.953rem);
+  --text-h1: clamp(1.953rem, 1.5rem + 2vw, 2.441rem);
+
+  /* layout + motion */
+  --container-public: 1040px;
+  --container-admin: 1200px;
+  --transition: 200ms ease;
+
+  /* public shell: 40px on mobile, 64-96px on desktop */
+  --section-pad: clamp(40px, 4vw + 24px, 96px);
+  --hero-gradient: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
+}
+
