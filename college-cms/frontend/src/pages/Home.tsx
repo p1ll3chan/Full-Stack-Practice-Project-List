@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useStreamList } from '../api/hooks'
 import DepartmentCard from '../components/DepartmentCard'
 import CmsSection from './CmsSection'
-import { EmptyState, Loading } from '../components/states'
+import { CardGridSkeleton, EmptyState } from '../components/states'
 
 function DepartmentPreview() {
   const { data: streams, loading, error } = useStreamList({ limit: 6, sort: 'sortOrder' })
@@ -10,16 +10,18 @@ function DepartmentPreview() {
   return (
     <section className="home-preview">
       <h2>Departments</h2>
-      {loading && <Loading label="Loading departments…" />}
+      {loading && <CardGridSkeleton label="Loading departments…" />}
       {!loading && error && <p className="error">Departments are unavailable right now.</p>}
       {!loading && !error && streams.length === 0 && <EmptyState message="No departments to show yet." />}
       {!loading && !error && streams.length > 0 && (
         <>
-          <div className="dept-grid">
+          <ul className="card-grid">
             {streams.map((stream) => (
-              <DepartmentCard key={stream.id} stream={stream} />
+              <li key={stream.id}>
+                <DepartmentCard stream={stream} />
+              </li>
             ))}
-          </div>
+          </ul>
           <div className="quick-links">
             <Link to="/departments" className="btn">
               All departments

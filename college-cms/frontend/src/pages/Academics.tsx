@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
 import { useCourseList, useDegreeLevelList, useStreamList } from '../api/hooks'
 import CourseCard from '../components/CourseCard'
-import { EmptyState, Loading } from '../components/states'
+import ResultsCount from '../components/ResultsCount'
+import { CardGridSkeleton, EmptyState, Loading } from '../components/states'
 import CmsSection from './CmsSection'
 
 function DegreeLevels() {
@@ -42,23 +43,33 @@ function DepartmentLinks() {
 
 function AllCourses() {
   const { data: courses, loading } = useCourseList({ limit: 100, sort: 'sortOrder' })
-  if (loading) return <Loading label="Loading courses…" />
+  if (loading) {
+    return (
+      <section aria-label="Courses">
+        <h2>All courses</h2>
+        <CardGridSkeleton label="Loading courses…" />
+      </section>
+    )
+  }
   if (courses.length === 0) return <EmptyState message="No courses available yet." />
   return (
     <section aria-label="Courses">
       <h2>All courses</h2>
-      <div className="course-grid">
+      <ResultsCount count={courses.length} singular="course" plural="courses" />
+      <ul className="card-grid">
         {courses.map((course) => (
-          <CourseCard key={course.id} course={course} to={`/academics/courses/${course.id}`} />
+          <li key={course.id}>
+            <CourseCard course={course} to={`/academics/courses/${course.id}`} />
+          </li>
         ))}
-      </div>
+      </ul>
     </section>
   )
 }
 
 export default function Academics() {
   return (
-    <CmsSection slug="academics">
+    <CmsSection slug="academics" eyebrow="Programmes" parents={[{ label: 'Home', to: '/' }]}>
       <DegreeLevels />
       <DepartmentLinks />
       <AllCourses />

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { usePageBySlug } from '../api/hooks'
 import Hero, { type HeroCta } from '../components/Hero'
-import PageHeader from '../components/PageHeader'
+import PageHeader, { type Crumb } from '../components/PageHeader'
 import PageBlocks from '../components/PageBlocks'
 import { ErrorState, Loading } from '../components/states'
 
@@ -10,9 +10,12 @@ interface CmsSectionProps {
   children?: ReactNode
   /** render the page title as a full-width hero instead of the plain page header */
   hero?: { eyebrow?: string; ctas?: HeroCta[] }
+  /** breadcrumb trail above the page title; the CMS page title is appended as the current page */
+  parents?: Crumb[]
+  eyebrow?: string
 }
 
-export default function CmsSection({ slug, children, hero }: CmsSectionProps) {
+export default function CmsSection({ slug, children, hero, parents, eyebrow }: CmsSectionProps) {
   const { data: page, loading, error, refetch } = usePageBySlug(slug)
 
   if (loading) return <Loading label="Loading page…" />
@@ -23,7 +26,11 @@ export default function CmsSection({ slug, children, hero }: CmsSectionProps) {
       {hero ? (
         <Hero title={page.title} eyebrow={hero.eyebrow} ctas={hero.ctas} />
       ) : (
-        <PageHeader title={page.title} />
+        <PageHeader
+          title={page.title}
+          eyebrow={eyebrow}
+          breadcrumbs={parents ? [...parents, { label: page.title }] : undefined}
+        />
       )}
       <PageBlocks blocks={page.blocks} />
       {children}

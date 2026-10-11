@@ -517,11 +517,16 @@ main.container:has(.hero) {
   color: var(--color-danger);
 }
 
+/* shared card grid for every public list (rendered as <ul>, one <li> per card) */
+.card-grid,
 .course-grid,
 .faculty-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .course-card,
@@ -938,12 +943,6 @@ select:focus {
 
 /* department cards */
 
-.dept-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
-
 .dept-card {
   position: relative;
   background: var(--color-surface);
@@ -994,12 +993,6 @@ select:focus {
 }
 
 /* excellence cards */
-
-.domain-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1rem;
-}
 
 .domain-card {
   position: relative;
@@ -1259,6 +1252,29 @@ button.chip:hover {
 
   .contact-list {
     grid-template-columns: 1fr;
+  }
+
+  /* chip rows become a horizontally scrollable strip on phones */
+  .stream-nav,
+  .chip-row {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+  }
+
+  .stream-nav > *,
+  .chip-row > * {
+    flex: none;
+  }
+
+  .list-toolbar {
+    position: static;
+  }
+
+  .toolbar-select,
+  .search-field {
+    flex: 1 1 100%;
   }
 }
 
@@ -1871,6 +1887,329 @@ main.container:has(.admin-shell) {
   to {
     background-position: -200% 0;
   }
+}
+
+/* ---------- Public list pages ---------- */
+
+/* breadcrumb (nav > ol) inside the page header */
+.breadcrumb ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.5rem;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.breadcrumb li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.breadcrumb li + li::before {
+  content: '/';
+  color: var(--color-muted);
+}
+
+.breadcrumb a {
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.breadcrumb [aria-current='page'] {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+/* toolbar: search + category, sticky under the site header on desktop */
+.list-toolbar {
+  position: sticky;
+  top: var(--header-offset, 72px);
+  z-index: 20;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: var(--space-3) var(--space-4);
+  margin: var(--space-2) 0 0;
+  padding: var(--space-3) 0;
+  background: var(--color-bg);
+}
+
+.search-field {
+  position: relative;
+  flex: 1 1 280px;
+  min-width: 0;
+}
+
+.search-field > .icon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-muted);
+  pointer-events: none;
+}
+
+.search-field input {
+  padding-left: 2.5rem;
+}
+
+.toolbar-select {
+  flex: 0 1 240px;
+  min-width: 0;
+}
+
+.toolbar-select label {
+  margin: 0 0 0.25rem;
+  font-size: 0.85rem;
+  color: var(--color-muted);
+}
+
+.toolbar-select select {
+  margin-top: 0;
+}
+
+.results-count {
+  margin: var(--space-2) 0 var(--space-4);
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+/* card anatomy: eyebrow, title (2-line clamp), facts, footer */
+.course-card,
+.faculty-card,
+.excellence-card,
+.domain-card,
+.dept-card {
+  height: 100%;
+}
+
+.course-card,
+.faculty-card,
+.excellence-card,
+.domain-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.dept-card-media {
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--color-surface-soft);
+}
+
+.dept-card-media .media-frame {
+  height: 100%;
+  object-fit: cover;
+}
+
+.dept-card-body {
+  flex: 1;
+}
+
+.card-eyebrow {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.card-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+/* the title link is the only <a> in a card; its ::after covers the whole card */
+.card-stretched {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-stretched::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.card-stretched:hover {
+  text-decoration: underline;
+}
+
+.card-stretched:focus-visible {
+  outline: none;
+}
+
+/* keyboard focus ring drawn on the whole card */
+.course-card:has(.card-stretched:focus-visible),
+.faculty-card:has(.card-stretched:focus-visible),
+.dept-card:has(.card-stretched:focus-visible),
+.domain-card:has(.card-stretched:focus-visible) {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.card-clamp {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.card-facts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card-fact {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: var(--color-ink);
+}
+
+.card-fact .icon {
+  flex: none;
+  color: var(--color-primary);
+}
+
+.card-fact span {
+  overflow-wrap: anywhere;
+}
+
+.card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.card-cta .icon {
+  transition: transform var(--transition);
+}
+
+.course-card:hover .card-cta .icon,
+.faculty-card:hover .card-cta .icon,
+.dept-card:hover .card-cta .icon,
+.domain-card:hover .card-cta .icon {
+  transform: translateX(3px);
+}
+
+.card-footer {
+  margin-top: auto;
+}
+
+/* loading: six placeholder cards */
+.card-grid-loading .card-grid {
+  margin: var(--space-2) 0;
+}
+
+.skeleton-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 100%;
+  padding: var(--space-4);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.skeleton-line {
+  height: 12px;
+  width: 100%;
+}
+
+.skeleton-line--title {
+  height: 20px;
+  width: 75%;
+}
+
+.skeleton-line--short {
+  width: 40%;
+}
+
+/* empty state: illustration + message + optional action */
+.state-card.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+}
+
+.state-card.empty-state p {
+  margin: 0;
+}
+
+.empty-illustration {
+  width: 120px;
+  height: auto;
+}
+
+.empty-illustration .ill-base {
+  fill: var(--color-surface-soft);
+  stroke: var(--color-border-strong);
+  stroke-width: 2;
+}
+
+.empty-illustration .ill-tab {
+  fill: var(--color-border);
+}
+
+.empty-illustration .ill-accent {
+  fill: var(--color-primary-light);
+  opacity: 0.85;
+}
+
+.empty-illustration .ill-line {
+  fill: none;
+  stroke: var(--color-border-strong);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+
+/* error: danger-toned panel */
+.state-card.error {
+  background: var(--color-danger-bg);
+  border-color: var(--color-danger);
+}
+
+.state-card.error h2 {
+  margin: 0 0 var(--space-2);
+  font-size: 1.1rem;
+  color: var(--color-danger);
+}
+
+.pagination .btn .icon {
+  flex: none;
 }
 
 /* ---------- Reduced motion ---------- */

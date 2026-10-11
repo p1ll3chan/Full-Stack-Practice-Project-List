@@ -100,10 +100,12 @@ describe('cards', () => {
     expect(link.getAttribute('href')).toBe('/academics/courses/11')
   })
 
-  it('renders faculty data with a mail link', () => {
+  it('renders faculty data; the card has a single link to the profile', () => {
     renderCard(<FacultyCard member={member} />)
     expect(screen.getByRole('heading', { name: 'Dr. Ada Lovelace' })).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'ada@college.edu' })).toBeTruthy()
+    expect(screen.getByText('ada@college.edu')).toBeTruthy()
+    expect(screen.getAllByRole('link')).toHaveLength(1)
+    expect(screen.getByRole('link', { name: 'Dr. Ada Lovelace' }).getAttribute('href')).toBe('/faculty/5')
   })
 
   it('renders excellence domain and item data', () => {

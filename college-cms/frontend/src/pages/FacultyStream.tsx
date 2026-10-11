@@ -3,8 +3,9 @@ import { useFacultyList, useStreamBySlug } from '../api/hooks'
 import CourseNav from '../components/CourseNav'
 import FacultyCard from '../components/FacultyCard'
 import PageHeader from '../components/PageHeader'
+import ResultsCount from '../components/ResultsCount'
 import StreamNav from '../components/StreamNav'
-import { EmptyState, ErrorState, Loading } from '../components/states'
+import { CardGridSkeleton, EmptyState, ErrorState, Loading } from '../components/states'
 
 export default function FacultyStream() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -20,12 +21,17 @@ export default function FacultyStream() {
 
   return (
     <section>
-      <PageHeader title={stream.name} subtitle={stream.tagline} eyebrow="Faculty" />
+      <PageHeader
+        title={stream.name}
+        subtitle={stream.tagline}
+        eyebrow="Faculty"
+        breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'Faculty', to: '/faculty' }, { label: stream.name }]}
+      />
       <StreamNav base="/faculty/streams" activeSlug={stream.slug} />
 
       <div className="detail-layout">
         <div className="detail-main">
-          {membersLoading && <Loading label="Loading faculty…" />}
+          {membersLoading && <CardGridSkeleton label="Loading faculty…" />}
           {membersError && <ErrorState error={membersError} onRetry={refetchMembers} title="Could not load faculty" />}
           {!membersLoading && !membersError && members.length === 0 && (
             <EmptyState
@@ -34,11 +40,16 @@ export default function FacultyStream() {
             />
           )}
           {!membersLoading && !membersError && members.length > 0 && (
-            <div className="faculty-grid">
-              {members.map((member) => (
-                <FacultyCard key={member.id} member={member} streamSlug={stream.slug} />
-              ))}
-            </div>
+            <>
+              <ResultsCount count={members.length} singular="faculty member" plural="faculty members" />
+              <ul className="card-grid">
+                {members.map((member) => (
+                  <li key={member.id}>
+                    <FacultyCard member={member} streamSlug={stream.slug} />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </div>
         <aside className="detail-side">

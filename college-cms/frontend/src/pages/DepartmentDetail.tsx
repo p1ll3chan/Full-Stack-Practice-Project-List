@@ -2,7 +2,8 @@ import { Link, useParams } from 'react-router-dom'
 import { useCourseList, useStreamBySlug } from '../api/hooks'
 import CourseCard from '../components/CourseCard'
 import PageHeader from '../components/PageHeader'
-import { EmptyState, ErrorState, Loading } from '../components/states'
+import ResultsCount from '../components/ResultsCount'
+import { CardGridSkeleton, EmptyState, ErrorState, Loading } from '../components/states'
 
 export default function DepartmentDetail() {
   const { slug = '' } = useParams<{ slug: string }>()
@@ -45,14 +46,19 @@ export default function DepartmentDetail() {
 
       <section aria-label="Courses">
         <h2>Courses</h2>
-        {coursesLoading && <Loading label="Loading courses…" />}
+        {coursesLoading && <CardGridSkeleton label="Loading courses…" />}
         {!coursesLoading && courses.length === 0 && <EmptyState message="No courses listed for this department yet." />}
         {!coursesLoading && courses.length > 0 && (
-          <div className="course-grid">
-            {courses.map((course) => (
-              <CourseCard key={course.id} course={course} to={`/academics/courses/${course.id}`} />
-            ))}
-          </div>
+          <>
+            <ResultsCount count={courses.length} singular="course" plural="courses" />
+            <ul className="card-grid">
+              {courses.map((course) => (
+                <li key={course.id}>
+                  <CourseCard course={course} to={`/academics/courses/${course.id}`} />
+                </li>
+              ))}
+            </ul>
+          </>
         )}
       </section>
     </section>

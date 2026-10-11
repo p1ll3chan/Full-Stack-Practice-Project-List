@@ -3,7 +3,9 @@ import { useAllStreams, useStreamList } from '../api/hooks'
 import DepartmentCard from '../components/DepartmentCard'
 import PageHeader from '../components/PageHeader'
 import Pagination from '../components/Pagination'
-import { EmptyState, ErrorState, Loading } from '../components/states'
+import ResultsCount from '../components/ResultsCount'
+import { CardGridSkeleton, EmptyState, ErrorState } from '../components/states'
+import { IconSearch } from '../components/icons'
 
 const PAGE_SIZE = 9
 
@@ -39,53 +41,81 @@ export default function Departments() {
     sort: 'sortOrder',
   })
 
+  const filtersActive = Boolean(debouncedSearch || category)
+
+  function clearFilters() {
+    setSearch('')
+    setDebouncedSearch('')
+    setCategory('')
+    setPage(1)
+  }
+
+  const total = meta?.total ?? streams.length
+
   return (
     <section>
-      <PageHeader title="Departments" subtitle="Explore every department, its programmes and courses." />
+      <PageHeader
+        title="Departments"
+        subtitle="Explore every department, its programmes and courses."
+        eyebrow="Academics"
+        breadcrumbs={[{ label: 'Home', to: '/' }, { label: 'Departments' }]}
+      />
 
-      <div className="filter-bar">
-        <label htmlFor="dept-search">Search departments</label>
-        <input
-          id="dept-search"
-          type="search"
-          value={search}
-          placeholder="Search by name, slug or tagline…"
-          onChange={(e) => setSearch(e.target.value)}
-        />
-        <label htmlFor="dept-category">Category</label>
-        <select
-          id="dept-category"
-          value={category}
-          disabled={categoriesLoading}
-          onChange={(e) => {
-            setCategory(e.target.value)
-            setPage(1)
-          }}
-        >
-          <option value="">All categories</option>
-          {categories.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
+      <div className="list-toolbar">
+        <div className="search-field">
+          <label htmlFor="dept-search" className="visually-hidden">
+            Search departments
+          </label>
+          <IconSearch size={18} />
+          <input
+            id="dept-search"
+            type="search"
+            value={search}
+            placeholder="Search by name, slug or tagline…"
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="toolbar-select">
+          <label htmlFor="dept-category">Category</label>
+          <select
+            id="dept-category"
+            value={category}
+            disabled={categoriesLoading}
+            onChange={(e) => {
+              setCategory(e.target.value)
+              setPage(1)
+            }}
+          >
+            <option value="">All categories</option>
+            {categories.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      {loading && <Loading label="Loading departments…" />}
+      <ResultsCount count={!loading && !error ? total : null} singular="department" plural="departments" />
+
+      {loading && <CardGridSkeleton label="Loading departments…" />}
       {!loading && error && <ErrorState error={error} onRetry={refetch} title="Could not load departments" />}
       {!loading && !error && streams.length === 0 && (
         <EmptyState
-          message={debouncedSearch || category ? 'No departments match your filters.' : 'No departments available yet.'}
-          hint={debouncedSearch || category ? 'Try a different search or category.' : undefined}
+          message={filtersActive ? 'No departments match your filters.' : 'No departments available yet.'}
+          hint={filtersActive ? 'Try a different search or category.' : undefined}
+          action={filtersActive ? { label: 'Clear filters', onClick: clearFilters } : undefined}
         />
       )}
       {!loading && !error && streams.length > 0 && (
         <>
-          <div className="dept-grid">
+          <ul className="card-grid">
             {streams.map((stream) => (
-              <DepartmentCard key={stream.id} stream={stream} />
+              <li key={stream.id}>
+                <DepartmentCard stream={stream} />
+              </li>
             ))}
-          </div>
+          </ul>
           <Pagination meta={meta} onPageChange={setPage} />
         </>
       )}
