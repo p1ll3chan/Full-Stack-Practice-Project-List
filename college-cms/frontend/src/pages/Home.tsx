@@ -33,7 +33,16 @@ function DepartmentPreview() {
 
 export default function Home() {
   return (
-    <CmsSection slug="home">
+    <CmsSection
+      slug="home"
+      hero={{
+        eyebrow: 'Welcome',
+        ctas: [
+          { to: '/departments', label: 'Explore departments', variant: 'primary' },
+          { to: '/faculty', label: 'Meet the faculty', variant: 'secondary' },
+        ],
+      }}
+    >
       <div className="quick-links">
         <Link to="/academics">Browse Academics</Link>
         <Link to="/faculty">Meet the Faculty</Link>

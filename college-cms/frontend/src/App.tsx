@@ -22,6 +22,7 @@ export default function App() {
           <main id="main" className="container">
             <AppRoutes />
           </main>
+          <div className="divider-slant" aria-hidden="true" />
           <Footer />
         </AuthProvider>
       </QueryClientProvider>
