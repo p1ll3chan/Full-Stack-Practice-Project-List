@@ -12,11 +12,17 @@ const quickLinks = [
 ]
 
 export default function Footer() {
-  // every value below comes from the CMS contact record; nothing is hardcoded
-  const { data: contact } = useContact()
-  const collegeName = contact?.collegeName || 'College CMS'
+  const { data: contact, loading, error } = useContact()
+  const collegeName = contact?.collegeName?.trim() || 'College CMS'
+  const tagline = contact?.tagline?.trim() ?? ''
+  const address = contact?.address?.trim() ?? ''
+  const phone = contact?.phone?.trim() ?? ''
+  const email = contact?.email?.trim() ?? ''
+  const officeHours = contact?.officeHours?.trim() ?? ''
   const mapUrl = contact?.mapEmbedUrl?.trim() ?? ''
   const mapHref = /^(https?:)?\/\//i.test(mapUrl) ? mapUrl : null
+
+  const hasDetails = Boolean(address || phone || email || officeHours || mapHref)
 
   return (
     <footer className="site-footer">
@@ -25,7 +31,7 @@ export default function Footer() {
           <h2 id="footer-college" className="footer-heading">
             {collegeName}
           </h2>
-          {contact?.tagline && <p className="footer-text">{contact.tagline}</p>}
+          {tagline && <p className="footer-text">{tagline}</p>}
         </section>
 
         <nav aria-labelledby="footer-links">
@@ -45,27 +51,27 @@ export default function Footer() {
           <h2 id="footer-contact" className="footer-heading">
             Contact
           </h2>
-          <ul className="footer-list">
-            {contact?.address && <li className="footer-text">{contact.address}</li>}
-            {contact?.phone && (
-              <li>
-                <a href={`tel:${contact.phone}`}>{contact.phone}</a>
-              </li>
-            )}
-            {contact?.email && (
-              <li>
-                <a href={`mailto:${contact.email}`}>{contact.email}</a>
-              </li>
-            )}
-            {contact?.officeHours && <li className="footer-text">{contact.officeHours}</li>}
-            {mapHref && (
-              <li>
-                <a href={mapHref} target="_blank" rel="noreferrer noopener">
-                  View on map
-                </a>
-              </li>
-            )}
-          </ul>
+          {loading ? (
+            <div role="status" aria-label="Loading contact details">
+              <span className="skeleton footer-contact-skeleton" aria-hidden="true">Loading contact details</span>
+            </div>
+          ) : error ? (
+            <p className="footer-text">Contact details are unavailable right now.</p>
+          ) : hasDetails ? (
+            <ul className="footer-list">
+              {address && <li className="footer-text">{address}</li>}
+              {phone && <li><a href={`tel:${phone}`}>{phone}</a></li>}
+              {email && <li><a href={`mailto:${email}`}>{email}</a></li>}
+              {officeHours && <li className="footer-text">{officeHours}</li>}
+              {mapHref && (
+                <li>
+                  <a href={mapHref} target="_blank" rel="noreferrer noopener">View on map</a>
+                </li>
+              )}
+            </ul>
+          ) : (
+            <p className="footer-text">Contact details will be available soon.</p>
+          )}
         </section>
       </div>
 
