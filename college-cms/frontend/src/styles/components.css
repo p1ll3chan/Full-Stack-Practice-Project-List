@@ -3,7 +3,8 @@
 
 .btn,
 .btn-primary,
-.btn-danger {
+.btn-danger,
+.btn-ghost {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -30,6 +31,16 @@
 
 /* hover: order matters, variants below override the generic .btn hover */
 .btn:hover:not(:disabled) {
+  background: var(--color-surface-soft);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 0;
+  color: var(--color-primary);
+}
+
+.btn-ghost:hover:not(:disabled) {
   background: var(--color-surface-soft);
 }
 
@@ -63,7 +74,8 @@
 
 .btn:disabled,
 .btn-primary:disabled,
-.btn-danger:disabled {
+.btn-danger:disabled,
+.btn-ghost:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   box-shadow: none;
@@ -113,6 +125,16 @@
 .badge-draft {
   background: var(--color-warning-bg);
   color: var(--color-warning);
+}
+
+.badge-info {
+  background: var(--color-surface-soft);
+  color: var(--color-primary-dark);
+}
+
+.badge-new {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 label {
@@ -178,13 +200,19 @@ select:focus {
 /* error state: applied by the .field-invalid wrapper */
 .field-invalid input,
 .field-invalid textarea,
-.field-invalid select {
+.field-invalid select,
+.is-invalid input,
+.is-invalid textarea,
+.is-invalid select {
   border-color: var(--color-danger);
 }
 
 .field-invalid input:focus,
 .field-invalid textarea:focus,
-.field-invalid select:focus {
+.field-invalid select:focus,
+.is-invalid input:focus,
+.is-invalid textarea:focus,
+.is-invalid select:focus {
   box-shadow: 0 0 0 3px rgba(179, 38, 46, 0.2);
 }
 

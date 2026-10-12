@@ -72,14 +72,15 @@ the WCAG formula before adding a colour to text use.
 
 ### Buttons
 `.btn` (outline, default) · `.btn-primary` (solid teal) · `.btn-danger`
-(solid red, destructive) · `.btn-sm` (compact, tables). All buttons:
+(solid red, destructive) · `.btn-ghost` (transparent, borderless, primary text, soft-teal hover) · `.btn-sm` (compact, tables). All buttons:
 min-height 44px (36px with `btn-sm`), radius-sm, 600 weight, hover tint,
 white focus ring on teal surfaces. Never use a bare `<a>` as a button.
 
 ### Chips / badges
 `.chip` (44px pill, neutral) inside `.chip-row`; on ≤720px chip rows become a
 horizontal scroll strip. Status badges: `.badge` + `.badge-live` (green) or
-`.badge-draft` (amber). Inline elements; no interaction.
+`.badge-draft` (amber), `.badge-info` (soft teal with primary-dark text), or
+`.badge-new` (danger text on danger-bg). Info and new badges meet AA text contrast. Inline elements; no interaction.
 
 ### Cards
 Grid: `<ul class="card-grid">` → `<li>` → `<article class="course-card |
@@ -91,7 +92,7 @@ whole card and the ring is drawn with `:has()` on the article. Title `h3.card-ti
 
 ### Forms
 `.field` wraps `label` + control (+ `.field-hint`, `.field-error` with
-`role="alert"`). Invalid wrapper: `.field-invalid`. Two-column grouping:
+`role="alert"`). Invalid wrapper: `.field-invalid` or its alias `.is-invalid` (identical descendant control and focus rules). Two-column grouping:
 `.form-grid`. Admin editors: `.admin-card` > `h2` > `form.admin-form` … >
 `FormSaveBar` (sticky `.save-bar` with `.save-status save-saving|save-saved|save-error`).
 All controls ≥44px; visible labels or `visually-hidden` label for icon-only inputs.
