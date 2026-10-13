@@ -17,8 +17,7 @@ and is imported, in cascade order, from `src/index.css`.
 | `src/styles/admin.css` | Admin shell, sidebar, tables, save bar, login |
 | `src/styles/public.css` | Public page patterns: cards, list toolbar, detail pages, prose, skeletons, print, reduced-motion |
 
-Rules are **contiguous slices** of the pre-split stylesheet — do not reorder
-blocks across files without checking the cascade. `print` and
+Keep the import order and check the cascade before moving rules between files. `print` and
 `prefers-reduced-motion` blocks must stay in `public.css` (last import): they
 override earlier rules in their own media contexts.
 
@@ -53,8 +52,12 @@ the WCAG formula before adding a colour to text use.
 - Elevation: `--shadow-card`, `--shadow-hover` (soft teal-tinted shadows).
 - Spacing: `--space-1..8` = 4px scale.
 - Containers: `--container-public` 1040px, `--container-admin` 1200px.
-- Motion: `--transition` 200ms ease; all transitions must be removed under
-  `prefers-reduced-motion: reduce`.
+- Public motion: `--dur-fast` 150ms, `--dur-base` 240ms, `--dur-slow` 450ms;
+  `--ease-out: cubic-bezier(.2,.7,.2,1)`. Animate only opacity and transform.
+  Legacy `--transition` remains for admin. Reduced motion uses instant states.
+- Public elevation: `--elevation-1/2/3`; section spacing: `--section-space`.
+- Stacking: `--z-sticky` 20, `--z-header` 50, `--z-drawer` 80, `--z-skip` 100.
+  Sticky content uses the responsive `--header-offset`.
 - Section padding: `--section-pad` clamp(40px … 96px).
 
 ## Typography
@@ -133,3 +136,59 @@ slant: `.divider-slant`. Pure CSS shapes; hidden in print. Images via
    names or colours.
 7. Before finishing: `npm run lint && npm test && npm run build`, then eyeball
    print output (Ctrl+P) and reduced-motion if you touched animation.
+
+
+## Amrita-inspired public presentation
+
+Marygiri keeps its teal palette, CMS content and supplied campus photographs.
+Amrita is a layout reference only: no borrowed logos, photography, copy or code.
+See [REDESIGN-PLAN.md](REDESIGN-PLAN.md) for the data mapping and motion catalogue.
+
+### Shared components
+
+- `Header` and `AcademicMegaMenu`: utility/main rows, a reserved sticky shell,
+  compact surface after 24px, click/keyboard menu and desktop hover intent.
+  Below 900px a native modal dialog provides a full-height accordion drawer,
+  focus containment and body scroll lock. Desktop menus have no focus trap.
+- `Reveal`, `RevealGrid`, `RevealList` and `useInView`: content starts visible;
+  only successfully observed offscreen elements are armed. One-shot opacity
+  and 16px rise; 240ms plus up to seven 30ms delays (450ms total budget).
+  Focus reveals immediately. Reduced motion and observer failure stay visible.
+- `ProgramsExplorer`: real degree/department groups, roving ARIA tabs and a
+  reserved course panel. The outgoing presentation copy is inert and hidden
+  from assistive technology during the 200ms crossfade.
+- `DepartmentCarousel`: native CSS scroll snap, buttons, keyboard arrows,
+  pointer drag and touch swipe. Never autoplay.
+- `AboutLinks`, `FacultyHighlights`, `ExcellenceHighlights`, `ApplyBand`:
+  compose the homepage from existing records; omit optional empty sections.
+- `PagePhoto`: supplied contextual images; never imply the laboratory photo
+  documents a specific award or that the auditorium photo is a faculty portrait.
+- `SectionNav`: real section anchors with an IntersectionObserver scroll spy;
+  omitted when fewer than two sections exist.
+- `ResultsCount`: opacity-only count update. `PublicPageTransition`: incoming
+  public-page View Transition with a 200ms CSS fallback and heading focus on
+  navigation. No routing interception; no public transitions on admin routes.
+- Reused cards, `MediaImage`, `PageHeader`, error/loading states and footer
+  retain their data contracts. Footer contact fallback behaviour is unchanged.
+
+### Adding sections
+
+1. Use existing hooks and actual content; do not invent records, totals or
+   contact details. Hide optional empty sections. Show request errors honestly.
+2. Reserve image aspect ratios and loading geometry. Lazy-load below-the-fold
+   photographs; the entrance hero is eager. Never animate height, width, margin,
+   shadow or colour. Static hover colours/shadows can change instantly.
+3. Use a heading and semantic list with shared cards. Add `Reveal`/`RevealList`
+   without hiding content by default. Stagger at most eight steps with `--i`.
+4. Mirror hover affordances on focus. Provide real buttons and keyboard/touch
+   operation, visible focus and 44px targets. Keep overlays Escape-dismissible
+   and return focus to their trigger.
+5. Keep reduced-motion rules last in the cascade: no animation, delayed reveal,
+   smooth scrolling or route crossfade. Keep all content available in print.
+6. Run lint/tests/build and inspect the five specified widths. The optional
+   `scripts/check-presentation.mjs` uses Node and an existing Chrome debugging
+   port (9223), adds no package, and writes evidence to `/tmp/marygiri-qa`.
+
+The hero uses one 450ms shape settle instead of continuous slow drift to honour
+both the motion budget and the no-autoplay requirement. Numeric count-up and
+news/event sections are skipped because there is no matching data contract.

@@ -49,3 +49,33 @@ it('tracks the 24px boundary and removes its listener', () => {
   unmount()
   expect(remove).toHaveBeenCalledWith('scroll', expect.any(Function))
 })
+
+it('reveals focused content even before intersection', () => {
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ top: 2000 } as DOMRect)
+  const disconnect = vi.fn()
+  vi.stubGlobal('IntersectionObserver', class { observe = vi.fn(); disconnect = disconnect })
+  const { container } = render(<Subject />)
+  const element = container.firstElementChild!
+  expect(element.hasAttribute('data-reveal-pending')).toBe(true)
+  act(() => element.dispatchEvent(new FocusEvent('focusin', { bubbles: true })))
+  expect(element.hasAttribute('data-reveal-pending')).toBe(false)
+  expect(disconnect).toHaveBeenCalled()
+})
+it('reveals immediately when reduced motion is enabled during the session', () => {
+  let change: () => void = () => {}
+  const preference = { matches: false, addEventListener: (_: string, callback: () => void) => { change = callback }, removeEventListener: vi.fn() }
+  vi.stubGlobal('matchMedia', () => preference)
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({ top: 2000 } as DOMRect)
+  vi.stubGlobal('IntersectionObserver', class { observe = vi.fn(); disconnect = vi.fn() })
+  const { container, unmount } = render(<Subject />)
+  expect(container.firstElementChild?.hasAttribute('data-reveal-pending')).toBe(true)
+  act(() => { preference.matches = true; change() })
+  expect(container.firstElementChild?.hasAttribute('data-reveal-pending')).toBe(false)
+  unmount()
+  expect(preference.removeEventListener).toHaveBeenCalled()
+})
+it('keeps content visible if observer registration throws', () => {
+  vi.stubGlobal('IntersectionObserver', class { observe() { throw new Error('Unavailable') }; disconnect = vi.fn() })
+  const { container } = render(<Subject />)
+  expect(container.firstElementChild?.hasAttribute('data-reveal-pending')).toBe(false)
+})

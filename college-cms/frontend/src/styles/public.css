@@ -696,14 +696,14 @@ main.container:has(.detail-band) {
 .site-footer .footer-list a { display: inline-flex; align-items: center; min-height: 44px; }
 .site-footer .footer-grid { gap: 40px; }
 /* Only compositor properties animate on the public surface. */
-main:not(:has(.admin-layout,.login-screen)) :is(.btn,.chip,input,select,textarea), .hero-cta-primary, .hero-cta-secondary, .course-card, .faculty-card, .dept-card, .domain-card, .excellence-card {
+main:not(:has(.admin-shell,.login-screen)) :is(.btn,.chip,input,select,textarea), .hero-cta-primary, .hero-cta-secondary, .course-card, .faculty-card, .dept-card, .domain-card, .excellence-card {
   transition-property: transform, opacity;
   transition-duration: var(--dur-base);
   transition-timing-function: var(--ease-out);
 }
 .card-cta .icon { transition: transform var(--dur-fast) var(--ease-out); }
 :is(.course-card,.faculty-card,.dept-card,.domain-card):is(:hover,:focus-within,:active) .card-cta .icon { transform: translateX(4px); }
-main:not(:has(.admin-layout,.login-screen)) .skeleton { animation: none; background: var(--color-surface-soft); }
+main:not(:has(.admin-shell,.login-screen)) .skeleton, .site-footer .skeleton { animation: none; background: var(--color-surface-soft); }
 @media (max-width: 899px) {
   .hero { min-height: 0; }
   .hero-photo { min-height: 420px; }

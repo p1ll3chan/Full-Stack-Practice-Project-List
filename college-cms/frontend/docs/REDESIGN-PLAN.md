@@ -306,4 +306,7 @@ implementation. Temporary browser evidence is under
 
 Pre-existing untracked files `../Achieve/` and
 `backend/src/scripts/seedMarygiriContact.ts` are outside the R0 commit.
-Next authorized phase after approval: R1 only.
+Historical R0 checkpoint. The user subsequently authorized continuing the image
+insertion and Amrita-inspired design without phase approval pauses. R1–R5
+therefore proceed with validation and phase commits; the original stop rule is
+superseded by that explicit instruction. See REDESIGN-QA.md for final evidence.
