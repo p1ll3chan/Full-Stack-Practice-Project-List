@@ -570,41 +570,6 @@ button.chip:hover {
 /* responsive */
 
 @media (max-width: 720px) {
-  .site-header {
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    padding: 0.75rem 1rem;
-  }
-
-  .site-header .header-apply {
-    order: 1;
-    min-height: 40px;
-  }
-
-  .nav-toggle {
-    display: inline-flex;
-    order: 2;
-  }
-
-  /* collapsed nav drops below the bar; hidden (and unfocusable) until opened */
-  .site-header nav {
-    order: 3;
-    display: none;
-    flex-direction: column;
-    gap: 0;
-    width: 100%;
-    padding-top: 0.5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.15);
-  }
-
-  .site-header.nav-open nav {
-    display: flex;
-  }
-
-  .site-header nav a {
-    padding: 0.75rem 0;
-  }
-
   .site-footer {
     padding-top: 40px;
     padding-bottom: 1.25rem;
