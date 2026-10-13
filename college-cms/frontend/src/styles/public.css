@@ -1,4 +1,21 @@
 /* src/styles/public.css — see docs/DESIGN.md. Imported by src/index.css; do not import directly. */
+/* Reveal is opt-in after successful observer setup. No JS means visible. */
+.reveal, .reveal-stagger > * {
+  transition: opacity var(--dur-base) var(--ease-out), transform var(--dur-base) var(--ease-out);
+}
+.reveal-stagger > * { transition-delay: calc(clamp(0, var(--i, 0), 7) * 30ms); }
+.reveal[data-reveal-pending], .reveal-stagger[data-reveal-pending] > * {
+  opacity: 0;
+  transform: translateY(16px);
+}
+@media (prefers-reduced-motion: reduce), print {
+  .reveal, .reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
 /* ---------- Card interactions ---------- */
 
 .course-card,
