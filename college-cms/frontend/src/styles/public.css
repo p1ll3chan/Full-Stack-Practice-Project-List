@@ -733,6 +733,59 @@ main:not(:has(.admin-layout,.login-screen)) .skeleton { animation: none; backgro
   .hero-cta-primary:hover, .btn:hover { transform: none !important; }
 }
 
+/* ---------- Lists, detail navigation and public route appearance ---------- */
+.photo-page-intro { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; margin-bottom: 40px; background: var(--color-surface-soft); }
+.photo-page-intro .page-header { padding: 24px; margin: 0; }
+.page-photo { width: 100%; height: auto; aspect-ratio: 3 / 2; object-fit: cover; border-radius: 0 0 0 48px; }
+.cms-intro { margin-block: 24px 40px; }
+.filter-chips, .section-nav { display: flex; gap: 8px; overflow-x: auto; padding: 8px 4px; margin-block: 8px 24px; background: var(--color-bg); }
+.filter-chips { position: sticky; top: var(--header-offset); z-index: var(--z-sticky); }
+.list-toolbar + .filter-chips { top: calc(var(--header-offset) + 96px); }
+.filter-chips > *, .section-nav > * { flex: none; }
+.filter-chips .chip[aria-pressed=true] { background: var(--color-primary); color: white; border-color: var(--color-primary); }
+.list-toolbar { top: var(--header-offset); z-index: var(--z-sticky); }
+.stream-nav { position: sticky; top: var(--header-offset); z-index: var(--z-sticky); background: var(--color-bg); padding-block: 12px; border-bottom: 1px solid var(--color-border); }
+.stream-nav .chip { border-radius: 0; border: 0; border-bottom: 3px solid transparent; background: transparent; }
+.stream-nav .chip.active { border-bottom-color: var(--color-primary); color: var(--color-primary-dark); font-weight: 700; }
+.section-nav { position: sticky; top: var(--header-offset); z-index: var(--z-sticky); border-bottom: 1px solid var(--color-border); }
+.section-nav a { display: flex; align-items: center; min-height: 44px; padding: 8px 16px; color: var(--color-muted); text-decoration: none; border-bottom: 3px solid transparent; }
+.section-nav a[aria-current] { color: var(--color-primary-dark); border-bottom-color: var(--color-primary); }
+.detail-layout { margin-block: 32px 64px; }
+.detail-main > section + section { margin-top: 40px; }
+.detail-side { top: calc(var(--header-offset) + 80px); }
+.detail-cta { padding: 20px; background: var(--color-surface-soft); border-top: 3px solid var(--color-primary); }
+[id^=department-], [id^=course-], [id^=academic-], [id^=faculty-] { scroll-margin-top: calc(var(--header-offset) + 96px); }
+.related-section { margin-block: 64px; max-width: 720px; }
+.card-grid.reveal-stagger > :nth-child(2) { --i: 1; }
+.card-grid.reveal-stagger > :nth-child(3) { --i: 2; }
+.card-grid.reveal-stagger > :nth-child(4) { --i: 3; }
+.card-grid.reveal-stagger > :nth-child(5) { --i: 4; }
+.card-grid.reveal-stagger > :nth-child(6) { --i: 5; }
+.card-grid.reveal-stagger > :nth-child(7) { --i: 6; }
+.card-grid.reveal-stagger > :nth-child(n+8) { --i: 7; }
+.dept-card img { transition: transform var(--dur-base) var(--ease-out); }
+.dept-card:is(:hover,:focus-within,:active) img { transform: scale(1.04); }
+.result-value { display: inline-block; animation: content-fade var(--dur-fast) var(--ease-out); }
+.results-count { min-height: 24px; }
+.page-fade { animation: content-fade 200ms var(--ease-out); }
+.page-snapshot { view-transition-name: public-page; }
+::view-transition-old(public-page) { animation: none; opacity: 0; }
+::view-transition-new(public-page) { animation: content-fade 200ms cubic-bezier(.2,.7,.2,1); }
+::view-transition-group(public-page), ::view-transition-old(root), ::view-transition-new(root) { animation: none; }
+@media (max-width: 899px) {
+  .photo-page-intro { grid-template-columns: 1fr; gap: 0; }
+  .photo-page-intro .page-header { padding: 24px 16px; }
+  .page-photo { max-height: 360px; }
+  .stream-nav { flex-wrap: nowrap; overflow-x: auto; }
+  .stream-nav > * { flex: none; }
+  .filter-chips { top: var(--header-offset); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .result-value, .page-fade { animation: none; }
+  .dept-card:is(:hover,:focus-within,:active) img { transform: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
 /* ---------- Print ---------- */
 
 @media print {

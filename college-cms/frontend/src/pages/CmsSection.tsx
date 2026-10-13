@@ -1,3 +1,4 @@
+import PagePhoto from '../components/PagePhoto'
 import Reveal from '../components/Reveal'
 import type { ReactNode } from 'react'
 import { usePageBySlug } from '../api/hooks'
@@ -24,6 +25,7 @@ export default function CmsSection({ slug, children, hero, parents, eyebrow }: C
 
   return (
     <section className={slug === 'home' ? 'home-page' : undefined}>
+      <div className={['academics', 'faculty', 'excellence'].includes(slug) ? 'photo-page-intro' : undefined}>
       {hero ? (
         <Hero title={page.title} eyebrow={hero.eyebrow} ctas={hero.ctas} />
       ) : (
@@ -33,6 +35,8 @@ export default function CmsSection({ slug, children, hero, parents, eyebrow }: C
           breadcrumbs={parents ? [...parents, { label: page.title }] : undefined}
         />
       )}
+      <PagePhoto section={slug} />
+      </div>
       <Reveal className={slug === 'home' ? 'home-about' : 'cms-intro'}><div className="prose">
         <PageBlocks blocks={page.blocks} />
       </div></Reveal>

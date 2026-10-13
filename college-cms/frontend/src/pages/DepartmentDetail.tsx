@@ -1,3 +1,5 @@
+import SectionNav from '../components/SectionNav'
+import { RevealList } from '../components/Reveal'
 import { Link, useParams } from 'react-router-dom'
 import { useCourseList, useStreamBySlug } from '../api/hooks'
 import CourseCard from '../components/CourseCard'
@@ -35,16 +37,22 @@ export default function DepartmentDetail() {
         </div>
       </div>
 
+      <SectionNav sections={[
+        ...(stream.shortDescription ? [{ id: 'department-overview', label: 'Overview' }] : []),
+        ...(stream.degreeLevels.length ? [{ id: 'department-degrees', label: 'Degree levels' }] : []),
+        { id: 'department-courses', label: 'Courses' },
+        { id: 'department-summary', label: 'Summary' },
+      ]} />
       <div className="detail-layout">
         <div className="detail-main">
           {stream.shortDescription && (
-            <div className="prose">
+            <div className="prose" id="department-overview"><h2>Overview</h2>
               <p>{stream.shortDescription}</p>
             </div>
           )}
 
           {stream.degreeLevels.length > 0 && (
-            <section aria-label="Degree levels offered">
+            <section id="department-degrees" aria-label="Degree levels offered">
               <h2>Degree levels offered</h2>
               <div className="chip-row">
                 {stream.degreeLevels.map((level) => (
@@ -56,26 +64,26 @@ export default function DepartmentDetail() {
             </section>
           )}
 
-          <section aria-label="Courses">
+          <section id="department-courses" aria-label="Courses">
             <h2>Courses</h2>
             {coursesLoading && <CardGridSkeleton label="Loading courses…" />}
             {!coursesLoading && courses.length === 0 && <EmptyState message="No courses listed for this department yet." />}
             {!coursesLoading && courses.length > 0 && (
               <>
                 <ResultsCount count={courses.length} singular="course" plural="courses" />
-                <ul className="card-grid">
+                <RevealList>
                   {courses.map((course) => (
                     <li key={course.id}>
                       <CourseCard course={course} to={`/academics/courses/${course.id}`} />
                     </li>
                   ))}
-                </ul>
+                </RevealList>
               </>
             )}
           </section>
         </div>
 
-        <aside className="detail-side" aria-label="Department summary">
+        <aside id="department-summary" className="detail-side" aria-label="Department summary">
           <DetailFacts facts={[{ label: 'Category', value: stream.category }]} />
           <div className="detail-cta">
             <Link className="btn-primary btn" to={`/academics/streams/${stream.slug}`}>

@@ -1,3 +1,4 @@
+import { RevealList } from '../components/Reveal'
 import { useEffect, useMemo, useState } from 'react'
 import { useAllStreams, useStreamList } from '../api/hooks'
 import DepartmentCard from '../components/DepartmentCard'
@@ -96,6 +97,10 @@ export default function Departments() {
         </div>
       </div>
 
+      <div className="filter-chips" role="group" aria-label="Department categories">
+        {['', ...categories].map(value => <button key={value} type="button" className="chip" aria-pressed={category === value} disabled={categoriesLoading} onClick={() => { setCategory(value); setPage(1) }}>{value || 'All departments'}</button>)}
+      </div>
+
       <ResultsCount count={!loading && !error ? total : null} singular="department" plural="departments" />
 
       {loading && <CardGridSkeleton label="Loading departments…" />}
@@ -110,13 +115,13 @@ export default function Departments() {
       {!loading && !error && streams.length > 0 && (
         <>
           <h2 className="visually-hidden">All departments</h2>
-          <ul className="card-grid">
+          <RevealList>
             {streams.map((stream) => (
               <li key={stream.id}>
                 <DepartmentCard stream={stream} />
               </li>
             ))}
-          </ul>
+          </RevealList>
           <Pagination meta={meta} onPageChange={setPage} />
         </>
       )}

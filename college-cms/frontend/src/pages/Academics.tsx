@@ -1,3 +1,5 @@
+import { useState } from 'react'
+import { RevealList } from '../components/Reveal'
 import { Link } from 'react-router-dom'
 import { useCourseList, useDegreeLevelList, useStreamList } from '../api/hooks'
 import CourseCard from '../components/CourseCard'
@@ -42,6 +44,7 @@ function DepartmentLinks() {
 }
 
 function AllCourses() {
+  const [department, setDepartment] = useState('')
   const { data: courses, loading } = useCourseList({ limit: 100, sort: 'sortOrder' })
   if (loading) {
     return (
@@ -52,17 +55,20 @@ function AllCourses() {
     )
   }
   if (courses.length === 0) return <EmptyState message="No courses available yet." />
+  const departments = [...new Set(courses.map(course => course.department).filter(Boolean))]
+  const filtered = courses.filter(course => !department || course.department === department)
   return (
     <section aria-label="Courses">
       <h2>All courses</h2>
-      <ResultsCount count={courses.length} singular="course" plural="courses" />
-      <ul className="card-grid">
-        {courses.map((course) => (
+      <div className="filter-chips" role="group" aria-label="Program departments">{['', ...departments].map(value => <button type="button" key={value} className="chip" aria-pressed={department === value} onClick={() => setDepartment(value)}>{value || 'All courses'}</button>)}</div>
+      <ResultsCount count={filtered.length} singular="course" plural="courses" />
+      <RevealList>
+        {filtered.map((course) => (
           <li key={course.id}>
             <CourseCard course={course} to={`/academics/courses/${course.id}`} />
           </li>
         ))}
-      </ul>
+      </RevealList>
     </section>
   )
 }

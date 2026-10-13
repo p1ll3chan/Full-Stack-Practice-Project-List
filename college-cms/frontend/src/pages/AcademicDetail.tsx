@@ -1,3 +1,4 @@
+import SectionNav from '../components/SectionNav'
 import { Link, useParams } from 'react-router-dom'
 import { useAcademicDetails } from '../api/hooks'
 import CourseNav from '../components/CourseNav'
@@ -36,21 +37,26 @@ export default function AcademicDetail() {
       </div>
       <StreamNav base="/academics/streams" activeSlug={stream.slug} />
 
+      <SectionNav sections={[
+        ...(hasOverview ? [{ id: 'academic-overview', label: 'Overview' }] : []),
+        ...(programs ? [{ id: 'academic-programs', label: 'Programs' }] : []),
+        { id: 'academic-summary', label: 'Summary' },
+      ]} />
       <div className="detail-layout">
         <div className="detail-main">
           {hasOverview ? (
-            <RichText doc={details?.overview} />
+            <section id="academic-overview"><h2>Overview</h2><RichText doc={details?.overview} /></section>
           ) : (
             <EmptyState message="No overview has been published for this department yet." />
           )}
           {programs && (
-            <section aria-label="Programmes offered">
+            <section id="academic-programs" aria-label="Programmes offered">
               <h2>Programmes offered</h2>
               <div className="programme-text">{programs}</div>
             </section>
           )}
         </div>
-        <aside className="detail-side" aria-label="Department summary">
+        <aside id="academic-summary" className="detail-side" aria-label="Department summary">
           <DetailFacts facts={[{ label: 'Category', value: stream.category }]} />
           <div className="detail-cta">
             <Link className="btn-primary btn" to={`/departments/${stream.slug}`}>

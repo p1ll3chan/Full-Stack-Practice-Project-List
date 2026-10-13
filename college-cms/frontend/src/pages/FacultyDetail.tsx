@@ -1,3 +1,4 @@
+import SectionNav from '../components/SectionNav'
 import { Link, useParams } from 'react-router-dom'
 import { useFacultyById } from '../api/hooks'
 import DetailFacts from '../components/DetailFacts'
@@ -26,10 +27,14 @@ export default function FacultyDetail() {
         </div>
       </div>
 
+      <SectionNav sections={[
+        ...(member.bio ? [{ id: 'faculty-biography', label: 'Biography' }] : []),
+        { id: 'faculty-summary', label: 'Summary' },
+      ]} />
       <div className="detail-layout">
         <div className="detail-main">
           {member.bio ? (
-            <div className="prose">
+            <div className="prose" id="faculty-biography"><h2>Biography</h2>
               <p>{member.bio}</p>
             </div>
           ) : (
@@ -37,7 +42,7 @@ export default function FacultyDetail() {
           )}
         </div>
 
-        <aside className="detail-side" aria-label="Faculty summary">
+        <aside id="faculty-summary" className="detail-side" aria-label="Faculty summary">
           <DetailFacts
             facts={[
               { label: 'Title', value: member.title },

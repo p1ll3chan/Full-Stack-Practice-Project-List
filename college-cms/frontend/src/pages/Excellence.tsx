@@ -1,3 +1,4 @@
+import { RevealList } from '../components/Reveal'
 import { useExcellenceDomains, useExcellenceList } from '../api/hooks'
 import { ExcellenceDomainCard, ExcellenceItemCard } from '../components/ExcellenceCard'
 import ResultsCount from '../components/ResultsCount'
@@ -14,13 +15,13 @@ function DomainGrid() {
   return (
     <section aria-label="Excellence categories">
       <h2>Categories</h2>
-      <ul className="card-grid">
+      <RevealList>
         {domains.map((domain) => (
           <li key={domain.id}>
             <ExcellenceDomainCard domain={domain} />
           </li>
         ))}
-      </ul>
+      </RevealList>
     </section>
   )
 }
@@ -36,13 +37,13 @@ function RecentHighlights() {
     <section aria-label="Recent highlights">
       <h2>Highlights</h2>
       <ResultsCount count={items.length} singular="achievement" plural="achievements" />
-      <ul className="card-grid">
+      <RevealList>
         {items.map((item) => (
           <li key={item.id}>
             <ExcellenceItemCard item={item} />
           </li>
         ))}
-      </ul>
+      </RevealList>
     </section>
   )
 }

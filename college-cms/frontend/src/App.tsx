@@ -1,5 +1,6 @@
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClientProvider } from '@tanstack/react-query'
+import PublicPageTransition from './components/PublicPageTransition'
 import Header from './components/Header'
 import Footer from './components/Footer'
 import { AuthProvider } from './admin/auth'
@@ -14,6 +15,7 @@ export default function App() {
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <ContentSync />
+        <PublicPageTransition />
         <AuthProvider>
           <a className="skip-link" href="#main">
             Skip to content

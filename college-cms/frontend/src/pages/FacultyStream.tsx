@@ -1,3 +1,4 @@
+import { RevealList } from '../components/Reveal'
 import { useParams } from 'react-router-dom'
 import { useFacultyList, useStreamBySlug } from '../api/hooks'
 import CourseNav from '../components/CourseNav'
@@ -43,13 +44,13 @@ export default function FacultyStream() {
             <>
               <h2 className="visually-hidden">Faculty members</h2>
               <ResultsCount count={members.length} singular="faculty member" plural="faculty members" />
-              <ul className="card-grid">
+              <RevealList>
                 {members.map((member) => (
                   <li key={member.id}>
                     <FacultyCard member={member} streamSlug={stream.slug} />
                   </li>
                 ))}
-              </ul>
+              </RevealList>
             </>
           )}
         </div>

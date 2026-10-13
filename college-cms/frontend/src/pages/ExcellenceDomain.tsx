@@ -1,3 +1,4 @@
+import { RevealList } from '../components/Reveal'
 import { Link, useParams } from 'react-router-dom'
 import { useExcellenceDomain, useExcellenceList } from '../api/hooks'
 import { ExcellenceItemCard } from '../components/ExcellenceCard'
@@ -44,13 +45,13 @@ export default function ExcellenceDomainPage() {
         <>
           <h2 className="visually-hidden">Achievements</h2>
           <ResultsCount count={items.length} singular="achievement" plural="achievements" />
-          <ul className="card-grid">
+          <RevealList>
             {items.map((item) => (
               <li key={item.id}>
                 <ExcellenceItemCard item={item} />
               </li>
             ))}
-          </ul>
+          </RevealList>
         </>
       )}
     </section>

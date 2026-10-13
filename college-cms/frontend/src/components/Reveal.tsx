@@ -8,3 +8,9 @@ export function RevealGrid({ children }: { children: ReactNode }) {
   const ref = useInView<HTMLUListElement>()
   return <ul ref={ref} className="card-grid reveal-stagger">{Children.toArray(children).map((child, index) => <li key={index} style={{ '--i': Math.min(index, 7) } as CSSProperties}>{child}</li>)}</ul>
 }
+
+/** Existing lists keep their li markup and semantics. */
+export function RevealList({ children }: { children: ReactNode }) {
+  const ref = useInView<HTMLUListElement>()
+  return <ul ref={ref} className="card-grid reveal-stagger">{children}</ul>
+}

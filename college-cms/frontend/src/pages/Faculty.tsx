@@ -1,3 +1,4 @@
+import { RevealList } from '../components/Reveal'
 import { useFacultyList } from '../api/hooks'
 import FacultyCard from '../components/FacultyCard'
 import ResultsCount from '../components/ResultsCount'
@@ -16,13 +17,13 @@ function FacultyGrid() {
     <>
       <h2 className="visually-hidden">Faculty members</h2>
       <ResultsCount count={members.length} singular="faculty member" plural="faculty members" />
-      <ul className="card-grid">
+      <RevealList>
         {members.map((member) => (
           <li key={member.id}>
             <FacultyCard member={member} />
           </li>
         ))}
-      </ul>
+      </RevealList>
     </>
   )
 }

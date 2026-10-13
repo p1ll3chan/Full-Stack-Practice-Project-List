@@ -9,7 +9,7 @@ export default function ResultsCount({ count, singular = 'result', plural = 'res
   const text = count === null ? '' : `Showing ${count} ${count === 1 ? singular : plural}`
   return (
     <p className="results-count" aria-live="polite">
-      {text}
+      <span key={text} className="result-value">{text}</span>
     </p>
   )
 }

@@ -1,3 +1,6 @@
+import SectionNav from '../components/SectionNav'
+import DepartmentCard from '../components/DepartmentCard'
+import { RevealGrid } from '../components/Reveal'
 import { Link, useParams } from 'react-router-dom'
 import { useAllStreams, useCourseById } from '../api/hooks'
 import DetailFacts from '../components/DetailFacts'
@@ -29,10 +32,15 @@ export default function CourseDetail() {
         </div>
       </div>
 
+      <SectionNav sections={[
+        ...(course.description ? [{ id: 'course-overview', label: 'Overview' }] : []),
+        { id: 'course-summary', label: 'Summary' },
+        ...(stream ? [{ id: 'course-related', label: 'Department' }] : []),
+      ]} />
       <div className="detail-layout">
         <div className="detail-main">
           {course.description ? (
-            <div className="prose">
+            <div className="prose" id="course-overview"><h2>Overview</h2>
               <p>{course.description}</p>
             </div>
           ) : (
@@ -40,14 +48,14 @@ export default function CourseDetail() {
           )}
         </div>
 
-        <aside className="detail-side" aria-label="Course summary">
+        <aside id="course-summary" className="detail-side" aria-label="Course summary">
           <DetailFacts
             facts={[
               { label: 'Course code', value: course.code },
               { label: 'Credits', value: course.credits != null ? `${course.credits} credits` : null },
               {
                 label: 'Department',
-                value: stream ? <Link to={`/departments/${stream.slug}`}>{stream.name}</Link> : course.department,
+                value: stream?.name || course.department,
               },
             ]}
           />
@@ -63,6 +71,7 @@ export default function CourseDetail() {
           </div>
         </aside>
       </div>
+      {stream && <section id="course-related" className="related-section"><h2>Related department</h2><RevealGrid><DepartmentCard stream={stream} /></RevealGrid></section>}
     </section>
   )
 }
