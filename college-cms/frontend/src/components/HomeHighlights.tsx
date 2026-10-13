@@ -10,7 +10,8 @@ import lab from '../assets/marygiri-computer-lab.png'
 import life from '../assets/marygiri-student-life.png'
 
 export function AboutLinks() {
-  const { data } = useAllStreams()
+  const { data, loading } = useAllStreams()
+  if (loading) return <div className="about-links-placeholder" aria-hidden="true" />
   const items = data.filter(stream => stream.tagline || stream.shortDescription).slice(0, 4)
   if (!items.length) return null
   return <nav className="about-links" aria-label="Explore Marygiri">{items.map(stream => <Link key={stream.id} to={`/departments/${stream.slug}`}><strong>{stream.name}</strong><span>{stream.tagline || stream.shortDescription}</span><span className="card-cta">Know more <span aria-hidden="true">↗</span></span></Link>)}</nav>

@@ -1,3 +1,4 @@
+import { useInView } from '../hooks/useInView'
 import { Link } from 'react-router-dom'
 import { useContact } from '../api/hooks'
 
@@ -12,6 +13,7 @@ const quickLinks = [
 ]
 
 export default function Footer() {
+  const ref = useInView<HTMLElement>()
   const { data: contact, loading, error } = useContact()
   const collegeName = contact?.collegeName?.trim() || 'College CMS'
   const tagline = contact?.tagline?.trim() ?? ''
@@ -25,7 +27,7 @@ export default function Footer() {
   const hasDetails = Boolean(address || phone || email || officeHours || mapHref)
 
   return (
-    <footer className="site-footer">
+    <footer ref={ref} className="site-footer reveal">
       <div className="footer-grid">
         <section aria-labelledby="footer-college">
           <h2 id="footer-college" className="footer-heading">

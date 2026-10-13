@@ -20,12 +20,12 @@ interface CmsSectionProps {
 export default function CmsSection({ slug, children, hero, parents, eyebrow }: CmsSectionProps) {
   const { data: page, loading, error, refetch } = usePageBySlug(slug)
 
-  if (loading) return <Loading label="Loading page…" />
+  if (loading) return <div className="cms-loading"><Loading label="Loading page…" /></div>
   if (error || !page) return <ErrorState error={error} onRetry={refetch} />
 
   return (
     <section className={slug === 'home' ? 'home-page' : undefined}>
-      <div className={['academics', 'faculty', 'excellence'].includes(slug) ? 'photo-page-intro' : undefined}>
+      <Reveal className={['academics', 'faculty', 'excellence'].includes(slug) ? 'photo-page-intro' : ''}>
       {hero ? (
         <Hero title={page.title} eyebrow={hero.eyebrow} ctas={hero.ctas} />
       ) : (
@@ -36,7 +36,7 @@ export default function CmsSection({ slug, children, hero, parents, eyebrow }: C
         />
       )}
       <PagePhoto section={slug} />
-      </div>
+      </Reveal>
       <Reveal className={slug === 'home' ? 'home-about' : 'cms-intro'}><div className="prose">
         <PageBlocks blocks={page.blocks} />
       </div></Reveal>

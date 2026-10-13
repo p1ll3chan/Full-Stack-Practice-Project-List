@@ -17,7 +17,7 @@ export function useInView<T extends HTMLElement>() {
     try {
       observer = new IntersectionObserver((entries) => {
         if (entries.some((entry) => entry.isIntersecting)) show()
-      }, { threshold: 0.08 })
+      }, { threshold: 0 })
       observer.observe(element)
       if (element.getBoundingClientRect().top >= window.innerHeight) {
         element.setAttribute('data-reveal-pending', '')

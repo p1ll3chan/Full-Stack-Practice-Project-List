@@ -23,10 +23,10 @@ export default function CourseCard({ course, to }: { course: Course; to?: string
             <span className="course-dept">{course.department}</span>
           </li>
         )}
-        <li className="card-fact">
+        {course.credits != null && <li className="card-fact">
           <IconAward />
-          <span className="course-credits">{course.credits ?? 0} cr</span>
-        </li>
+          <span className="course-credits">{course.credits} cr</span>
+        </li>}
       </ul>
       {to && (
         <div className="card-footer">

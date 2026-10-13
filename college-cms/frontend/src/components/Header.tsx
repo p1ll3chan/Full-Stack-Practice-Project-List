@@ -22,7 +22,7 @@ export default function Header() {
   const name = contact?.collegeName || 'College CMS'
   const cancelIntent = () => { clearTimeout(intent.current) }
   const closeMenu = (restore = false) => { cancelIntent(); setOpen(false); if (restore) trigger.current?.focus() }
-  const closeDrawer = () => { setDrawer(false); toggle.current?.focus() }
+  const closeDrawer = () => { dialog.current?.close?.(); setDrawer(false); toggle.current?.focus() }
 
   const [lastPath, setLastPath] = useState(location.pathname)
   if (lastPath !== location.pathname) { setLastPath(location.pathname); setOpen(false); setDrawer(false) }
@@ -61,7 +61,7 @@ export default function Header() {
   }
   return <header ref={header} className={`site-header${compact ? ' is-compact' : ''}`}>
     <div className="header-surface">
-      <div className="utility-row"><div className="header-width"><span>{contact?.tagline}</span><nav aria-label="Utility navigation">{secondary.map(link => <Link key={link.to} to={link.to}>{link.label}</Link>)}</nav></div></div>
+      <div className="utility-row" inert={compact}><div className="header-width"><span>{contact?.tagline}</span><nav aria-label="Utility navigation">{secondary.map(link => <Link key={link.to} to={link.to}>{link.label}</Link>)}</nav></div></div>
       <div className="main-header header-width">
         <Link to="/" className="brand"><span className="brand-mark" aria-hidden="true">M</span><span>{name}</span></Link>
         <nav className="desktop-nav" aria-label="Main navigation">
