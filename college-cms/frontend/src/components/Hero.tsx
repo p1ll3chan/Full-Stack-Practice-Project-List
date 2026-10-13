@@ -1,3 +1,4 @@
+import entrance from '../assets/marygiri-entrance.png'
 import { Link } from 'react-router-dom'
 import { useContact } from '../api/hooks'
 import { usePageTitle } from '../hooks/usePageTitle'
@@ -23,6 +24,7 @@ export default function Hero({ title, eyebrow, ctas = [] }: HeroProps) {
   return (
     <>
       <section className="hero bleed">
+        <img className="hero-photo" src={entrance} width="780" height="520" fetchPriority="high" alt="Marygiri College entrance and campus" />
         <div className="hero-inner">
           {eyebrow && <p className="eyebrow">{eyebrow}</p>}
           <h1>{title}</h1>

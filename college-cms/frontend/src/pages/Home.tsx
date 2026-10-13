@@ -1,56 +1,19 @@
-import { Link } from 'react-router-dom'
-import { useStreamList } from '../api/hooks'
-import DepartmentCard from '../components/DepartmentCard'
 import CmsSection from './CmsSection'
-import { CardGridSkeleton, EmptyState } from '../components/states'
-
-function DepartmentPreview() {
-  const { data: streams, loading, error } = useStreamList({ limit: 6, sort: 'sortOrder' })
-
-  return (
-    <section className="home-preview">
-      <h2>Departments</h2>
-      {loading && <CardGridSkeleton label="Loading departments…" />}
-      {!loading && error && <p className="error">Departments are unavailable right now.</p>}
-      {!loading && !error && streams.length === 0 && <EmptyState message="No departments to show yet." />}
-      {!loading && !error && streams.length > 0 && (
-        <>
-          <ul className="card-grid">
-            {streams.map((stream) => (
-              <li key={stream.id}>
-                <DepartmentCard stream={stream} />
-              </li>
-            ))}
-          </ul>
-          <div className="quick-links">
-            <Link to="/departments" className="btn">
-              All departments
-            </Link>
-          </div>
-        </>
-      )}
-    </section>
-  )
-}
+import Reveal from '../components/Reveal'
+import ProgramsExplorer from '../components/ProgramsExplorer'
+import DepartmentCarousel from '../components/DepartmentCarousel'
+import { AboutLinks, ApplyBand, ExcellenceHighlights, FacultyHighlights } from '../components/HomeHighlights'
 
 export default function Home() {
-  return (
-    <CmsSection
-      slug="home"
-      hero={{
-        eyebrow: 'Welcome',
-        ctas: [
-          { to: '/departments', label: 'Explore departments', variant: 'primary' },
-          { to: '/faculty', label: 'Meet the faculty', variant: 'secondary' },
-        ],
-      }}
-    >
-      <div className="quick-links">
-        <Link to="/academics">Browse Academics</Link>
-        <Link to="/faculty">Meet the Faculty</Link>
-        <Link to="/departments">Explore Departments</Link>
-      </div>
-      <DepartmentPreview />
-    </CmsSection>
-  )
+  return <CmsSection slug="home" hero={{ eyebrow: 'Welcome', ctas: [
+    { to: '/departments', label: 'Explore departments', variant: 'primary' },
+    { to: '/faculty', label: 'Meet the faculty', variant: 'secondary' },
+  ] }}>
+    <Reveal><AboutLinks /></Reveal>
+    <Reveal><ProgramsExplorer /></Reveal>
+    <Reveal><DepartmentCarousel /></Reveal>
+    <Reveal><FacultyHighlights /></Reveal>
+    <Reveal><ExcellenceHighlights /></Reveal>
+    <Reveal><ApplyBand /></Reveal>
+  </CmsSection>
 }

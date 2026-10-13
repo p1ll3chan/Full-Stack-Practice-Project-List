@@ -1,3 +1,4 @@
+import Reveal from '../components/Reveal'
 import type { ReactNode } from 'react'
 import { usePageBySlug } from '../api/hooks'
 import Hero, { type HeroCta } from '../components/Hero'
@@ -22,7 +23,7 @@ export default function CmsSection({ slug, children, hero, parents, eyebrow }: C
   if (error || !page) return <ErrorState error={error} onRetry={refetch} />
 
   return (
-    <section>
+    <section className={slug === 'home' ? 'home-page' : undefined}>
       {hero ? (
         <Hero title={page.title} eyebrow={hero.eyebrow} ctas={hero.ctas} />
       ) : (
@@ -32,9 +33,9 @@ export default function CmsSection({ slug, children, hero, parents, eyebrow }: C
           breadcrumbs={parents ? [...parents, { label: page.title }] : undefined}
         />
       )}
-      <div className="prose">
+      <Reveal className={slug === 'home' ? 'home-about' : 'cms-intro'}><div className="prose">
         <PageBlocks blocks={page.blocks} />
-      </div>
+      </div></Reveal>
       {children}
     </section>
   )

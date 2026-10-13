@@ -91,7 +91,7 @@ describe('public routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: 'Welcome' })).toBeTruthy()
     expect(screen.getByRole('heading', { level: 2, name: 'Hello homepage' })).toBeTruthy()
     expect(screen.getByText('Body of home')).toBeTruthy()
-    expect(screen.getByRole('link', { name: 'Browse Academics' }).getAttribute('href')).toBe('/academics')
+    expect(screen.getByRole('link', { name: 'Explore departments' }).getAttribute('href')).toBe('/departments')
   })
 
   it('shows the not-found page for an invalid department slug', async () => {

@@ -169,7 +169,7 @@ describe('content event sync', () => {
 })
 
 describe('empty dataset', () => {
-  it('renders empty states on the homepage', async () => {
+  it('hides the empty departments preview on the homepage', async () => {
     stubFetch((url) => {
       if (url.startsWith('/api/pages/home')) return { body: pageBody('home', 'Welcome', 'Hello homepage') }
       if (url.startsWith('/api/streams')) return { body: { data: [], meta: meta(1, 9, 0, 0) } }
@@ -179,7 +179,8 @@ describe('empty dataset', () => {
     renderPublic('/')
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Welcome' })).toBeTruthy()
-    expect(await screen.findByText('No departments to show yet.')).toBeTruthy()
+    await waitFor(() => expect(screen.queryByText('Loading departments…')).toBeNull())
+    expect(screen.queryByRole('heading', { name: 'Departments' })).toBeNull()
   })
 
   it('renders the empty state on the departments listing', async () => {
